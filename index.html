@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>لوحة التحكم — دجاج بوردو</title>
+  <style>
+    :root{
+      --green:#28a745;
+      --green-dark:#1d7a33;
+      --bg:#f6fbf7;
+      --card:#ffffff;
+      --muted:#6b7280;
+    }
+    *{box-sizing:border-box}
+    body{font-family:"Segoe UI",Tahoma,Verdana,sans-serif;background:var(--bg);color:#1f2937;margin:0}
+    header{position:sticky;top:0;background:linear-gradient(90deg,var(--green-dark),var(--green));color:#fff;padding:16px 20px;z-index:10;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+    header h1{margin:0;font-size:20px}
+    .container{padding:18px;max-width:1100px;margin:auto}
+
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+    .tab{background:var(--card);border:1px solid #e5e7eb;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700;color:#1f2937}
+    .tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+
+    .card{background:var(--card);border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.05);padding:14px;margin-bottom:16px}
+    .grid{display:grid;gap:10px}
+    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    @media(max-width:820px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+    label{font-size:13px;color:#374151}
+    input,select,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px;font-size:14px;box-sizing:border-box}
+    button{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .btn{background:var(--green);color:#fff;transition:background 0.2s}
+    .btn:hover{background:var(--green-dark)}
+    .btn.secondary{background:#f3f4f6;color:#111827}
+    .btn.danger{background:#ef4444;color:#fff}
+    .muted{color:var(--muted)}
+
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid #f1f5f9;padding:10px;text-align:right;vertical-align:top}
+    th{background:#f8fafc;color:#334155}
+
+    .status{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800}
+    .s-received{background:#e3f2fd;color:#0b74de}
+    .s-preparing{background:#fff3e0;color:#f59e0b}
+    .s-on_the_way{background:#e1f5fe;color:#0288d1}
+    .s-delivered{background:#e8f5e9;color:#2e7d32}
+
+    .section{display:none}
+    .section.active{display:block}
+    
+    .oos-indicator {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        display: inline-block;
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body>
+  <header>
+    <h1>لوحة التحكم — دجاج بوردو (إدارة الأصناف، مناطق التوصيل، طرق الدفع، الطلبات)</h1>
+  </header>
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" data-target="sec-products">الأصناف (الوجبات)</div>
+      <div class="tab" data-target="sec-categories">تصنيفات الأصناف</div>
+      <div class="tab" data-target="sec-areas">مناطق التوصيل</div>
+      <div class="tab" data-target="sec-payments">طرق الدفع</div> <div class="tab" data-target="sec-orders">الطلبات</div>
+    </div>
+    
+    <section id="sec-products" class="section active">
+      <div class="card">
+        <h3 style="margin:0 0 10px">إضافة صنف (وجبة)</h3>
+        <div class="grid grid-3">
+          <div>
+            <label>اسم الصنف</label>
+            <input id="prod-name" placeholder="مثال: دجاج منسف، بيتزا تن" />
+          </div>
+          <div>
+            <label>السعر (دينار)</label>
+            <input id="prod-price" type="number" step="0.01" placeholder="0.00" />
+          </div>
+          <div>
+            <label>التصنيف</label>
+            <select id="prod-category"></select>
+          </div>
+          <div style="grid-column:span 3 / span 3;">
+            <label>رابط الصورة الرئيسية</label>
+            <input id="prod-image" placeholder="https://...jpg" />
+          </div>
+          <div style="grid-column:span 3 / span 3;">
+            <label>وصف الصنف</label>
+            <textarea id="prod-description" placeholder="وصف موجز للصنف" rows="3"></textarea>
+          </div>
+          <div style="align-self:end; grid-column:span 3 / span 3;"><button class="btn" onclick="addProduct()">+ إضافة صنف</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 10px">جميع الأصناف</h3>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:60px">#</th>
+              <th>الاسم</th>
+              <th style="width:140px">التصنيف</th>
+              <th style="width:100px">السعر</th>
+              <th>الصورة/الوصف</th>
+              <th style="width:250px">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="prods-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+    
+    <section id="sec-categories" class="section">
+      <div class="card">
+        <h3 style="margin:0 0 10px">إضافة تصنيف</h3>
+        <div class="grid grid-3">
+          <div>
+            <label>اسم التصنيف</label>
+            <input id="cat-name" placeholder="مثال: وجبات، بوكسات، مشروبات" />
+          </div>
+          <div style="align-self:end"><button class="btn" onclick="addCategory()">+ إضافة</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 10px">جميع التصنيفات</h3>
+        <table>
+          <thead><tr><th style="width:60px">#</th><th>الاسم</th><th style="width:220px">إجراءات</th></tr></thead>
+          <tbody id="cats-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="sec-areas" class="section">
+        <div class="card">
+            <h3 style="margin:0 0 10px">إضافة منطقة توصيل</h3>
+            <div class="grid grid-3">
+                <div>
+                    <label>اسم المنطقة</label>
+                    <input id="area-name" placeholder="مثال: الهواري، بوهديمة" />
+                </div>
+                <div>
+                    <label>رسوم التوصيل (دينار)</label>
+                    <input id="area-price" type="number" step="0.01" placeholder="0.00" />
+                </div>
+                <div style="align-self:end"><button class="btn" onclick="addArea()">+ إضافة</button></div>
+            </div>
+        </div>
+        <div class="card">
+            <h3 style="margin:0 0 10px">مناطق التوصيل ورسومها</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:60px">#</th>
+                        <th>الاسم</th>
+                        <th style="width:150px">رسوم التوصيل</th>
+                        <th style="width:220px">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="areas-tbody"></tbody>
+            </table>
+        </div>
+    </section>
+    
+    <section id="sec-payments" class="section">
+        <div class="card">
+            <h3 style="margin:0 0 10px">إضافة طريقة دفع</h3>
+            <div class="grid grid-3">
+                <div>
+                    <label>اسم طريقة الدفع</label>
+                    <input id="pay-name" placeholder="مثال: كاش، موبي كاش، بطاقة" />
+                </div>
+                <div style="align-self:end"><button class="btn" onclick="addPaymentMethod()">+ إضافة</button></div>
+            </div>
+        </div>
+        <div class="card">
+            <h3 style="margin:0 0 10px">جميع طرق الدفع</h3>
+            <table>
+                <thead><tr><th style="width:60px">#</th><th>الاسم</th><th style="width:220px">إجراءات</th></tr></thead>
+                <tbody id="payments-tbody"></tbody>
+            </table>
+        </div>
+    </section>
+
+
+    <section id="sec-orders" class="section">
+      <div class="card">
+        <h3 style="margin:0 0 10px">الطلبات الواردة</h3>
+        <div class="muted" style="margin:6px 0 12px">يمكن تغيير حالة الطلب.</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:60px">#</th>
+              <th>الوقت</th>
+              <th>العميل</th>
+              <th>طريقة الطلب/الدفع</th>
+              <th>العناصر</th>
+              <th>الإجمالي</th>
+              <th>الحالة</th>
+              <th style="width:160px">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="orders-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+<script>
+  /* ===== إعداد Firebase ===== */
+  const firebaseConfig = {
+    apiKey: "AIzaSyCA7vLmbwRC-PU_lEMkTiMf3X6pfNm2fbw",
+    authDomain: "bordo-ly.firebaseapp.com",
+    databaseURL: "https://bordo-ly-default-rtdb.firebaseio.com",
+    projectId: "bordo-ly",
+    storageBucket: "bordo-ly.firebasestorage.app",
+    messagingSenderId: "654879491144",
+    appId: "1:654879491144:web:50bd2b026bf6ac9f02c47d"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  /* ================================================ */
+
+  let categories = {};
+  let products = {};
+  let deliveryAreas = {};
+  let paymentMethods = {}; // <-- إضافة متغير جديد
+  let orders = {};
+
+  // التبويبات
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById(tab.dataset.target).classList.add('active');
+    });
+  });
+
+  // دوال التحميل
+  function loadCategories() {
+    db.ref('categories').on('value', snapshot => {
+      categories = snapshot.val() || {};
+      renderCategories();
+      renderCategorySelect(); 
+    });
+  }
+  function loadProducts() {
+    db.ref('products').on('value', snapshot => {
+      products = snapshot.val() || {};
+      renderProducts();
+    });
+  }
+  function loadDeliveryAreas() {
+    db.ref('deliveryAreas').on('value', snapshot => {
+      deliveryAreas = snapshot.val() || {};
+      renderAreas();
+    });
+  }
+  function loadPaymentMethods() { // <-- دالة تحميل طرق الدفع الجديدة
+    db.ref('paymentMethods').on('value', snapshot => {
+      paymentMethods = snapshot.val() || {};
+      renderPaymentMethods();
+    });
+  }
+  function loadOrders() {
+    db.ref('orders').on('value', snapshot => {
+      orders = snapshot.val() || {};
+      renderOrders();
+    });
+  }
+
+  // ===== إدارة التصنيفات =====
+  function renderCategories() {
+    const tbody = document.getElementById('cats-tbody');
+    tbody.innerHTML = '';
+    Object.keys(categories).forEach((key, idx) => {
+      const cat = categories[key];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>${cat.name}</td>
+        <td>
+          <button class="btn secondary" onclick="editCategory('${key}')">تعديل</button>
+          <button class="btn danger" onclick="deleteCategory('${key}')">حذف</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+  function renderCategorySelect() {
+    const select = document.getElementById('prod-category');
+    select.innerHTML = '';
+    Object.keys(categories).forEach(key => {
+      const opt = document.createElement('option');
+      opt.value = categories[key].name; // حفظ اسم التصنيف مباشرة
+      opt.textContent = categories[key].name;
+      select.appendChild(opt);
+    });
+  }
+  function addCategory() {
+    const name = document.getElementById('cat-name').value.trim();
+    if (!name) return alert('يرجى إدخال اسم التصنيف');
+    db.ref('categories').push().set({ name }).then(() => {
+      document.getElementById('cat-name').value = '';
+    });
+  }
+  function editCategory(key) {
+    const newName = prompt('الاسم الجديد:', categories[key].name);
+    if (newName) db.ref('categories/' + key).update({ name: newName });
+  }
+  function deleteCategory(key) {
+    if (confirm('هل أنت متأكد من حذف هذا التصنيف؟')) {
+      db.ref('categories/' + key).remove();
+    }
+  }
+
+  // ===== إدارة الأصناف (الوجبات) =====
+  function renderProducts() {
+    const tbody = document.getElementById('prods-tbody');
+    tbody.innerHTML = '';
+    Object.keys(products).forEach((key, idx) => {
+      const p = products[key];
+      const firstImage = p.image || '';
+      const outOfStockBtnClass = p.outOfStock ? 'btn secondary' : 'btn danger';
+      const outOfStockBtnText = p.outOfStock ? 'إلغاء نفدت الكمية' : 'نفدت الكمية';
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>${p.name} ${p.outOfStock ? '<span class="oos-indicator">نفدت الكمية</span>' : ''}</td>
+        <td>${p.category || '—'}</td>
+        <td>${Number(p.price).toFixed(2)} دينار</td>
+        <td>${firstImage ? `<img src="${firstImage}" style="width:50px;height:50px;object-fit:cover;border-radius:6px; margin-bottom: 4px;" alt=""><br>` : '—'}
+            <span class="muted" style="font-size:12px;">${(p.desc || '').substring(0, 50)}...</span>
+        </td>
+        <td>
+          <button class="btn secondary" onclick="editProduct('${key}')">تعديل</button>
+          <button class="btn danger" onclick="deleteProduct('${key}')">حذف</button>
+          <button class="${outOfStockBtnClass}" onclick="toggleOutOfStock('${key}', ${!!p.outOfStock})">${outOfStockBtnText}</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function addProduct() {
+    const name = document.getElementById('prod-name').value.trim();
+    const price = document.getElementById('prod-price').value;
+    const category = document.getElementById('prod-category').value;
+    const image = document.getElementById('prod-image').value.trim();
+    const description = document.getElementById('prod-description').value.trim();
+
+    if (!name || !price || !category) return alert('يرجى إدخال الاسم والسعر واختيار التصنيف');
+    const newProdRef = db.ref('products').push();
+    newProdRef.set({ 
+        id: newProdRef.key, // حفظ المفتاح كـ ID للمنتج
+        name, 
+        price: Number(price), 
+        category, 
+        image, 
+        desc: description,
+        outOfStock: false
+    }).then(() => { 
+      document.getElementById('prod-name').value = '';
+      document.getElementById('prod-price').value = '';
+      document.getElementById('prod-image').value = '';
+      document.getElementById('prod-description').value = ''; 
+    });
+  }
+
+  function editProduct(key) {
+    const p = products[key];
+    const name = prompt('الاسم الجديد:', p.name);
+    if (!name) return;
+    const price = prompt('السعر الجديد:', p.price);
+    if (!price) return;
+    const image = prompt('رابط الصورة الجديد:', p.image || '');
+    const description = prompt('الوصف الجديد:', p.desc || ''); 
+    db.ref('products/' + key).update({
+      name, price: Number(price), image, desc: description 
+    });
+  }
+
+  function deleteProduct(key) {
+    if (confirm('هل أنت متأكد من حذف هذا الصنف؟')) {
+      db.ref('products/' + key).remove();
+    }
+  }
+  
+  function toggleOutOfStock(key, isCurrentlyOutOfStock) {
+    db.ref('products/' + key).update({
+      outOfStock: !isCurrentlyOutOfStock
+    });
+  }
+
+  // ===== إدارة مناطق التوصيل =====
+  function renderAreas() {
+    const tbody = document.getElementById('areas-tbody');
+    tbody.innerHTML = '';
+    Object.keys(deliveryAreas).forEach((key, idx) => {
+      const area = deliveryAreas[key];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>${area.name}</td>
+        <td>${Number(area.price).toFixed(2)} دينار</td>
+        <td>
+          <button class="btn secondary" onclick="editArea('${key}')">تعديل</button>
+          <button class="btn danger" onclick="deleteArea('${key}')">حذف</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+  
+  function addArea() {
+    const name = document.getElementById('area-name').value.trim();
+    const price = document.getElementById('area-price').value;
+
+    if (!name || !price) return alert('يرجى إدخال اسم المنطقة ورسوم التوصيل');
+    db.ref('deliveryAreas').push().set({ 
+        name, 
+        price: Number(price)
+    }).then(() => { 
+      document.getElementById('area-name').value = '';
+      document.getElementById('area-price').value = '';
+    });
+  }
+
+  function editArea(key) {
+    const area = deliveryAreas[key];
+    const newName = prompt('الاسم الجديد:', area.name);
+    if (!newName) return;
+    const newPrice = prompt('رسوم التوصيل الجديدة:', area.price);
+    if (!newPrice) return;
+    db.ref('deliveryAreas/' + key).update({
+      name: newName, price: Number(newPrice)
+    });
+  }
+
+  function deleteArea(key) {
+    if (confirm('هل أنت متأكد من حذف هذه المنطقة؟')) {
+      db.ref('deliveryAreas/' + key).remove();
+    }
+  }
+  
+  // ===== إدارة طرق الدفع الجديدة =====
+  function renderPaymentMethods() {
+    const tbody = document.getElementById('payments-tbody');
+    tbody.innerHTML = '';
+    Object.keys(paymentMethods).forEach((key, idx) => {
+      const method = paymentMethods[key];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>${method.name}</td>
+        <td>
+          <button class="btn secondary" onclick="editPaymentMethod('${key}')">تعديل</button>
+          <button class="btn danger" onclick="deletePaymentMethod('${key}')">حذف</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+  
+  function addPaymentMethod() {
+    const name = document.getElementById('pay-name').value.trim();
+    if (!name) return alert('يرجى إدخال اسم طريقة الدفع');
+    db.ref('paymentMethods').push().set({ name }).then(() => {
+      document.getElementById('pay-name').value = '';
+    });
+  }
+  
+  function editPaymentMethod(key) {
+    const newName = prompt('الاسم الجديد:', paymentMethods[key].name);
+    if (newName) db.ref('paymentMethods/' + key).update({ name: newName });
+  }
+  
+  function deletePaymentMethod(key) {
+    if (confirm('هل أنت متأكد من حذف طريقة الدفع هذه؟')) {
+      db.ref('paymentMethods/' + key).remove();
+    }
+  }
+
+  // ===== إدارة الطلبات =====
+  function renderOrders() {
+    const tbody = document.getElementById('orders-tbody');
+    tbody.innerHTML = '';
+    // تحويل الكائن إلى مصفوفة وفرزها حسب الأحدث أولاً
+    const sortedOrders = Object.entries(orders).sort(([, a], [, b]) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    sortedOrders.forEach(([key, o], idx) => {
+      const date = new Date(o.createdAt || Date.now()).toLocaleString('ar-EG');
+      const items = (o.items || []).map(i => `${i.name} × ${i.qty}`).join('، ');
+      const status = o.status || 'received';
+      const statusClass = `s-${status}`;
+      const statusText = getStatusText(status);
+      const methodText = o.method === 'delivery' ? `توصيل (${o.customerArea} - ${o.deliveryFee.toFixed(2)}د)` : 'استلام';
+      const paymentText = o.payment || 'غير محدد'; // تم التعديل لعرض قيمة payment المخزنة مباشرة
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>${date}</td>
+        <td>${o.customerPhone}</td>
+        <td>${methodText}<br><small>الدفع: ${paymentText}</small></td>
+        <td>${items}<br><span class="muted" style="font-size:12px;">ملاحظات: ${o.notes || 'لا يوجد'}</span></td>
+        <td><strong>${o.total ? o.total.toFixed(2) : '0.00'} دينار</strong></td>
+        <td><span class="status ${statusClass}">${statusText}</span></td>
+        <td>
+          <select onchange="updateOrderStatus('${key}', this.value)" style="margin-bottom:6px">
+            <option value="received" ${status === 'received' ? 'selected' : ''}>تم الاستلام</option>
+            <option value="preparing" ${status === 'preparing' ? 'selected' : ''}>قيد التجهيز</option>
+            <option value="on_the_way" ${status === 'on_the_way' ? 'selected' : ''}>في الطريق</option>
+            <option value="delivered" ${status === 'delivered' ? 'selected' : ''}>تم التسليم</option>
+          </select>
+          <button class="btn danger" onclick="deleteOrder('${key}')">حذف</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function updateOrderStatus(key, newStatus) {
+    db.ref('orders/' + key).update({ status: newStatus });
+  }
+
+  function deleteOrder(key) {
+    if (confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
+      db.ref('orders/' + key).remove();
+    }
+  }
+
+  function getStatusText(status) {
+    const statusMap = {
+      'received': 'تم الاستلام',
+      'preparing': 'قيد التجهيز',
+      'on_the_way': 'في الطريق',
+      'delivered': 'تم التسليم'
+    };
+    return statusMap[status] || status;
+  }
+
+  // تحميل البيانات عند فتح الصفحة
+  loadCategories();
+  loadProducts();
+  loadDeliveryAreas();
+  loadPaymentMethods(); // <-- تحميل طرق الدفع
+  loadOrders();
+</script>
+</body>
+</html>
