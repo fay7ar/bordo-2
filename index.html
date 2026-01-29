@@ -67,61 +67,89 @@
     .oos-indicator { background: #f8d7da; color: #721c24; padding: 2px 6px; border-radius: 6px; font-size: 11px; font-weight: 700; }
     img.thumb { width:50px; height:50px; object-fit:cover; border-radius:8px; }
     
-    /* تنسيقات جديدة لرفع الصور عبر الرابط */
-    .image-url-container { 
-        display: flex; 
-        flex-direction: column;
-        gap: 10px; 
-        margin-bottom: 10px; 
+    /* تصميم جديد لرفع الصور من الذاكرة المحلية */
+    .image-upload-container {
+        margin-bottom: 15px;
     }
-    .image-url-input-group {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-    .image-url-input-group input {
-        flex: 1;
-    }
-    .image-preview-box { 
-        width: 100px; 
-        height: 100px; 
-        border: 2px solid var(--border); 
-        border-radius: 10px; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        overflow: hidden; 
-        position: relative;
+    
+    .image-upload-box {
+        border: 2px dashed #d1d5db;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
         background: #f9fafb;
-        margin-top: 10px;
+        margin-bottom: 10px;
     }
-    .image-preview-box img { 
-        max-width: 100%; 
-        max-height: 100%; 
-        object-fit: cover; 
+    
+    .image-upload-box:hover {
+        border-color: var(--green);
+        background: #f0fdf4;
     }
-    .image-url-text { 
-        font-size: 12px; 
-        color: var(--muted); 
+    
+    .image-upload-box.has-image {
+        border-style: solid;
+        padding: 10px;
+    }
+    
+    .upload-icon {
+        font-size: 40px;
+        color: var(--muted);
+        margin-bottom: 10px;
+    }
+    
+    .upload-text {
+        color: var(--muted);
+        font-size: 14px;
         margin-bottom: 5px;
     }
-    .image-actions {
+    
+    .upload-hint {
+        font-size: 12px;
+        color: #9ca3af;
+    }
+    
+    .image-preview-container {
+        position: relative;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+    
+    .image-preview {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+    }
+    
+    .remove-image-btn {
+        position: absolute;
+        top: -10px;
+        left: -10px;
+        background: #ef4444;
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
         display: flex;
-        gap: 10px;
-        margin-top: 10px;
-    }
-    .test-image-btn {
-        padding: 8px 12px;
-        background: #e3f2fd;
-        color: #0b74de;
-        border: none;
-        border-radius: 6px;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
         cursor: pointer;
-        font-size: 13px;
-        font-weight: 600;
+        border: none;
     }
-    .test-image-btn:hover {
-        background: #bbdefb;
+    
+    .image-size-info {
+        font-size: 11px;
+        color: var(--muted);
+        text-align: center;
+        margin-top: 5px;
+    }
+    
+    .image-input {
+        display: none;
     }
     
     /* تنسيقات جديدة لقائمة الأصناف مع الترتيب */
@@ -294,6 +322,10 @@
         .product-actions button {
             flex: 1;
         }
+        
+        .image-preview-container {
+            max-width: 150px;
+        }
     }
     
     /* تصميم الجدول في وضع الهاتف */
@@ -414,6 +446,11 @@
         justify-content: flex-end;
         margin-top: 20px;
     }
+    
+    /* حاوية رفع الصورة في نافذة التعديل */
+    .edit-image-upload-container {
+        margin-top: 10px;
+    }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -439,22 +476,21 @@
           <div><label>السعر (دينار)</label><input id="prod-price" type="number" step="0.01" /></div>
           <div><label>التصنيف</label><select id="prod-category"></select></div>
           
+          <!-- حاوية رفع الصورة الجديدة -->
           <div style="grid-column: span 3;">
-            <div class="image-url-container">
-              <label>رابط صورة الصنف</label>
-              <div class="image-url-input-group">
-                <input type="text" id="prod-image-url" placeholder="https://example.com/image.jpg" />
-                <button type="button" class="test-image-btn" onclick="testImageUrl()">اختبار الصورة</button>
+            <div class="image-upload-container">
+              <label>صورة الصنف</label>
+              <div id="imageUploadBox" class="image-upload-box">
+                <div id="uploadIcon" class="upload-icon">📁</div>
+                <div id="uploadText" class="upload-text">انقر لرفع صورة</div>
+                <div class="upload-hint">(يمكن رفع الصور من ذاكرة الجهاز)</div>
+                <input type="file" id="productImageInput" class="image-input" accept="image/*">
               </div>
-              <div class="image-preview-box">
-                <img id="image-preview" src="" alt="معاينة الصورة" style="display: none;">
-                <div class="image-url-text" id="preview-text">ستظهر معاينة الصورة هنا</div>
-              </div>
-              <div class="image-actions">
-                <button type="button" class="btn secondary" onclick="clearImageUrl()">مسح الرابط</button>
-                <span style="font-size: 12px; color: var(--muted); margin-left: auto;">
-                  ارفع الصورة على أي خدمة تخزين (مثل Imgur) وأدخل الرابط هنا
-                </span>
+              
+              <div id="imagePreviewContainer" class="image-preview-container" style="display: none;">
+                <img id="imagePreview" class="image-preview" src="" alt="معاينة الصورة">
+                <button type="button" class="remove-image-btn" onclick="removeProductImage()">×</button>
+                <div id="imageSizeInfo" class="image-size-info"></div>
               </div>
             </div>
           </div>
@@ -554,17 +590,30 @@
         <label>التصنيف</label>
         <select id="edit-category"></select>
       </div>
-      <div class="edit-form-group">
-        <label>رابط الصورة الجديدة (اختياري)</label>
-        <input type="text" id="edit-image-url" placeholder="https://example.com/new-image.jpg" />
-        <div style="margin-top: 10px;">
-          <button type="button" class="test-image-btn" onclick="testEditImageUrl()">اختبار الصورة</button>
+      
+      <!-- حاوية رفع الصورة في نافذة التعديل -->
+      <div class="edit-form-group edit-image-upload-container">
+        <label>صورة الصنف</label>
+        <div id="editImageUploadBox" class="image-upload-box">
+          <div id="editUploadIcon" class="upload-icon">📁</div>
+          <div id="editUploadText" class="upload-text">انقر لتغيير الصورة</div>
+          <div class="upload-hint">(يمكن رفع صورة جديدة من الذاكرة)</div>
+          <input type="file" id="editProductImageInput" class="image-input" accept="image/*">
         </div>
-        <div class="image-preview-box" style="margin-top: 10px;">
-          <img id="edit-image-preview" src="" alt="معاينة الصورة" style="display: none;">
-          <div class="image-url-text" id="edit-preview-text">ستظهر معاينة الصورة هنا</div>
+        
+        <div id="editImagePreviewContainer" class="image-preview-container" style="display: none;">
+          <img id="editImagePreview" class="image-preview" src="" alt="معاينة الصورة">
+          <button type="button" class="remove-image-btn" onclick="removeEditProductImage()">×</button>
+          <div id="editImageSizeInfo" class="image-size-info"></div>
+        </div>
+        
+        <div id="editCurrentImageContainer" class="image-preview-container" style="margin-top: 10px;">
+          <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">الصورة الحالية:</div>
+          <img id="editCurrentImage" class="image-preview" src="" alt="الصورة الحالية">
+          <div id="editCurrentImageInfo" class="image-size-info"></div>
         </div>
       </div>
+      
       <div class="edit-form-group">
         <label>الوصف</label>
         <textarea id="edit-description" rows="3"></textarea>
@@ -603,9 +652,9 @@
 
   let categories = {}, products = {}, deliveryAreas = {}, paymentMethods = {}, orders = {};
   let productOrder = []; // لتخزين ترتيب الأصناف
-  let currentProductImageUrl = ''; // لتخزين رابط الصورة
+  let currentProductImage = null; // لتخزين الصورة المرفوعة حالياً
   let currentEditProductKey = ''; // لتخزين مفتاح المنتج الذي يتم تعديله
-  let currentEditProductImageUrl = ''; // لتخزين رابط الصورة في نافذة التعديل
+  let currentEditProductImage = null; // لتخزين الصورة الجديدة في نافذة التعديل
 
   // التنقل بين التبويبات
   document.querySelectorAll('.tab').forEach(tab => {
@@ -617,68 +666,119 @@
     });
   });
 
-  // اختبار رابط الصورة
-  function testImageUrl() {
-    const imageUrl = document.getElementById('prod-image-url').value.trim();
-    if (!imageUrl) {
-      alert('الرجاء إدخال رابط الصورة أولاً');
-      return;
-    }
-
-    const preview = document.getElementById('image-preview');
-    const previewText = document.getElementById('preview-text');
-    
-    preview.src = imageUrl;
-    preview.onload = function() {
-      preview.style.display = 'block';
-      previewText.style.display = 'none';
-      currentProductImageUrl = imageUrl;
-      showSuccess('تم تحميل الصورة بنجاح!');
+  // تحويل الصورة إلى Base64
+  function convertImageToBase64(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      callback(e.target.result);
     };
-    
-    preview.onerror = function() {
-      preview.style.display = 'none';
-      previewText.style.display = 'block';
-      previewText.textContent = 'تعذر تحميل الصورة. الرجاء التأكد من الرابط.';
-      currentProductImageUrl = '';
-    };
+    reader.readAsDataURL(file);
   }
 
-  // اختبار رابط الصورة في نافذة التعديل
-  function testEditImageUrl() {
-    const imageUrl = document.getElementById('edit-image-url').value.trim();
-    if (!imageUrl) {
-      alert('الرجاء إدخال رابط الصورة أولاً');
-      return;
-    }
-
-    const preview = document.getElementById('edit-image-preview');
-    const previewText = document.getElementById('edit-preview-text');
+  // تهيئة أحداث رفع الصورة للمنتج الجديد
+  function initializeImageUpload() {
+    const imageUploadBox = document.getElementById('imageUploadBox');
+    const productImageInput = document.getElementById('productImageInput');
     
-    preview.src = imageUrl;
-    preview.onload = function() {
-      preview.style.display = 'block';
-      previewText.style.display = 'none';
-      currentEditProductImageUrl = imageUrl;
-      showSuccess('تم تحميل الصورة بنجاح!');
-    };
+    imageUploadBox.addEventListener('click', () => {
+      productImageInput.click();
+    });
     
-    preview.onerror = function() {
-      preview.style.display = 'none';
-      previewText.style.display = 'block';
-      previewText.textContent = 'تعذر تحميل الصورة. الرجاء التأكد من الرابط.';
-      currentEditProductImageUrl = '';
-    };
+    productImageInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        
+        // التحقق من حجم الصورة (لا نحدد حجم معين، فقط نعرض معلومات)
+        const fileSize = (file.size / 1024).toFixed(2);
+        
+        // تحويل الصورة إلى Base64
+        convertImageToBase64(file, (base64Image) => {
+          currentProductImage = base64Image;
+          
+          // عرض المعاينة
+          const preview = document.getElementById('imagePreview');
+          const container = document.getElementById('imagePreviewContainer');
+          const sizeInfo = document.getElementById('imageSizeInfo');
+          const uploadBox = document.getElementById('imageUploadBox');
+          const uploadIcon = document.getElementById('uploadIcon');
+          const uploadText = document.getElementById('uploadText');
+          
+          preview.src = base64Image;
+          container.style.display = 'block';
+          sizeInfo.textContent = `حجم الصورة: ${fileSize} كيلوبايت`;
+          
+          // تحديث واجهة رفع الصورة
+          uploadBox.classList.add('has-image');
+          uploadIcon.style.display = 'none';
+          uploadText.textContent = 'تم رفع الصورة بنجاح';
+          
+          showSuccess('تم تحميل الصورة بنجاح!');
+        });
+      }
+    });
   }
 
-  // مسح رابط الصورة
-  function clearImageUrl() {
-    document.getElementById('prod-image-url').value = '';
-    document.getElementById('image-preview').src = '';
-    document.getElementById('image-preview').style.display = 'none';
-    document.getElementById('preview-text').style.display = 'block';
-    document.getElementById('preview-text').textContent = 'ستظهر معاينة الصورة هنا';
-    currentProductImageUrl = '';
+  // تهيئة أحداث رفع الصورة في نافذة التعديل
+  function initializeEditImageUpload() {
+    const editImageUploadBox = document.getElementById('editImageUploadBox');
+    const editProductImageInput = document.getElementById('editProductImageInput');
+    
+    editImageUploadBox.addEventListener('click', () => {
+      editProductImageInput.click();
+    });
+    
+    editProductImageInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        
+        // التحقق من حجم الصورة
+        const fileSize = (file.size / 1024).toFixed(2);
+        
+        // تحويل الصورة إلى Base64
+        convertImageToBase64(file, (base64Image) => {
+          currentEditProductImage = base64Image;
+          
+          // عرض المعاينة
+          const preview = document.getElementById('editImagePreview');
+          const container = document.getElementById('editImagePreviewContainer');
+          const sizeInfo = document.getElementById('editImageSizeInfo');
+          const uploadBox = document.getElementById('editImageUploadBox');
+          const uploadIcon = document.getElementById('editUploadIcon');
+          const uploadText = document.getElementById('editUploadText');
+          
+          preview.src = base64Image;
+          container.style.display = 'block';
+          sizeInfo.textContent = `حجم الصورة: ${fileSize} كيلوبايت`;
+          
+          // تحديث واجهة رفع الصورة
+          uploadBox.classList.add('has-image');
+          uploadIcon.style.display = 'none';
+          uploadText.textContent = 'تم رفع الصورة الجديدة';
+          
+          showSuccess('تم تحميل الصورة الجديدة بنجاح!');
+        });
+      }
+    });
+  }
+
+  // إزالة صورة المنتج الجديد
+  function removeProductImage() {
+    currentProductImage = null;
+    document.getElementById('productImageInput').value = '';
+    document.getElementById('imagePreviewContainer').style.display = 'none';
+    document.getElementById('imageUploadBox').classList.remove('has-image');
+    document.getElementById('uploadIcon').style.display = 'block';
+    document.getElementById('uploadText').textContent = 'انقر لرفع صورة';
+  }
+
+  // إزالة صورة المنتج في نافذة التعديل
+  function removeEditProductImage() {
+    currentEditProductImage = null;
+    document.getElementById('editProductImageInput').value = '';
+    document.getElementById('editImagePreviewContainer').style.display = 'none';
+    document.getElementById('editImageUploadBox').classList.remove('has-image');
+    document.getElementById('editUploadIcon').style.display = 'block';
+    document.getElementById('editUploadText').textContent = 'انقر لتغيير الصورة';
   }
 
   // عرض رسالة نجاح
@@ -726,6 +826,10 @@
       productOrder = s.val() || []; 
       renderProductList();
     });
+    
+    // تهيئة أحداث رفع الصور
+    initializeImageUpload();
+    initializeEditImageUpload();
   }
 
   // عرض قائمة الأصناف بشكل أنيق مع خاصية الترتيب
@@ -762,8 +866,8 @@
       productItem.dataset.key = key;
       productItem.draggable = true;
       
-      const imageUrl = p.image || 'https://via.placeholder.com/60x60/e8f5e9/2e7d32?text=🍗';
       const defaultImage = 'https://via.placeholder.com/60x60/e8f5e9/2e7d32?text=🍗';
+      const imageUrl = p.image ? p.image : defaultImage;
       
       productItem.innerHTML = `
         <div class="product-order-handle">
@@ -926,6 +1030,13 @@
     if (!name) return alert('يرجى إدخال اسم الصنف');
     if (!price || Number(price) <= 0) return alert('يرجى إدخال سعر صحيح');
     
+    // التحقق من وجود صورة
+    if (!currentProductImage) {
+      if (!confirm('لم تقم برفع صورة للمنتج. هل تريد المتابعة بدون صورة؟')) {
+        return;
+      }
+    }
+    
     const productRef = db.ref('products').push();
     const productId = productRef.key;
     
@@ -933,7 +1044,7 @@
       name, 
       price: Number(price), 
       category: category || null, 
-      image: currentProductImageUrl || '',
+      image: currentProductImage || '',
       desc: description || '',
       outOfStock: outOfStock,
       createdAt: Date.now()
@@ -943,7 +1054,7 @@
       document.getElementById('prod-price').value = '';
       document.getElementById('prod-description').value = '';
       document.getElementById('prod-outofstock').checked = false;
-      clearImageUrl();
+      removeProductImage();
       
       // تحديث قائمة التصنيفات
       renderCategorySelect();
@@ -960,14 +1071,13 @@
     if (!p) return;
     
     currentEditProductKey = key;
-    currentEditProductImageUrl = p.image || '';
+    currentEditProductImage = null; // إعادة تعيين الصورة الجديدة
     
     // تعبئة الحقول
     document.getElementById('edit-name').value = p.name || '';
     document.getElementById('edit-price').value = p.price || '';
     document.getElementById('edit-description').value = p.desc || '';
     document.getElementById('edit-outofstock').checked = !!p.outOfStock;
-    document.getElementById('edit-image-url').value = p.image || '';
     
     // تعبئة قائمة التصنيفات في نافذة التعديل
     const categorySelect = document.getElementById('edit-category');
@@ -980,19 +1090,30 @@
       categorySelect.value = p.category;
     }
     
-    // عرض معاينة الصورة الحالية
-    const preview = document.getElementById('edit-image-preview');
-    const previewText = document.getElementById('edit-preview-text');
+    // عرض الصورة الحالية
+    const currentImage = document.getElementById('editCurrentImage');
+    const currentImageContainer = document.getElementById('editCurrentImageContainer');
+    const currentImageInfo = document.getElementById('editCurrentImageInfo');
     
     if (p.image) {
-      preview.src = p.image;
-      preview.style.display = 'block';
-      previewText.style.display = 'none';
+      currentImage.src = p.image;
+      
+      // حساب حجم الصورة التقريبي
+      if (p.image.length > 0) {
+        const sizeInKB = (p.image.length / 1024).toFixed(2);
+        currentImageInfo.textContent = `حجم الصورة: ${sizeInKB} كيلوبايت`;
+      }
+      
+      currentImageContainer.style.display = 'block';
     } else {
-      preview.style.display = 'none';
-      previewText.style.display = 'block';
-      previewText.textContent = 'لا توجد صورة';
+      currentImageContainer.style.display = 'none';
     }
+    
+    // إخفاء معاينة الصورة الجديدة
+    document.getElementById('editImagePreviewContainer').style.display = 'none';
+    document.getElementById('editImageUploadBox').classList.remove('has-image');
+    document.getElementById('editUploadIcon').style.display = 'block';
+    document.getElementById('editUploadText').textContent = 'انقر لتغيير الصورة';
     
     // عرض النافذة
     document.getElementById('editProductModal').style.display = 'flex';
@@ -1002,7 +1123,7 @@
   function closeEditModal() {
     document.getElementById('editProductModal').style.display = 'none';
     currentEditProductKey = '';
-    currentEditProductImageUrl = '';
+    currentEditProductImage = null;
   }
 
   // تحديث المنتج
@@ -1014,28 +1135,38 @@
     const category = document.getElementById('edit-category').value;
     const description = document.getElementById('edit-description').value.trim();
     const outOfStock = document.getElementById('edit-outofstock').checked;
-    const imageUrl = document.getElementById('edit-image-url').value.trim();
     
     if (!name) return alert('يرجى إدخال اسم الصنف');
     if (!price || Number(price) <= 0) return alert('يرجى إدخال سعر صحيح');
     
-    // استخدام الرابط الجديد إذا تم إدخاله، أو الاحتفاظ بالصورة الحالية
-    const finalImageUrl = imageUrl || currentEditProductImageUrl;
+    // الحصول على الصورة الحالية من المنتج
+    const currentProduct = products[currentEditProductKey];
+    const currentImage = currentProduct ? currentProduct.image : '';
     
-    db.ref('products/' + currentEditProductKey).update({ 
+    // استخدام الصورة الجديدة إذا تم رفعها، أو الاحتفاظ بالصورة الحالية
+    const finalImage = currentEditProductImage || currentImage;
+    
+    const updateData = { 
       name: name,
       price: Number(price),
       category: category || null,
-      image: finalImageUrl,
       desc: description || '',
       outOfStock: outOfStock,
       updatedAt: Date.now()
-    }).then(() => {
-      closeEditModal();
-      showSuccess('تم تحديث المنتج بنجاح!');
-    }).catch(error => {
-      alert('حدث خطأ في تحديث المنتج: ' + error.message);
-    });
+    };
+    
+    // فقط نضيف الصورة إذا كانت موجودة
+    if (finalImage) {
+      updateData.image = finalImage;
+    }
+    
+    db.ref('products/' + currentEditProductKey).update(updateData)
+      .then(() => {
+        closeEditModal();
+        showSuccess('تم تحديث المنتج بنجاح!');
+      }).catch(error => {
+        alert('حدث خطأ في تحديث المنتج: ' + error.message);
+      });
   }
 
   function toggleOutOfStock(key, isOutOfStock) {
