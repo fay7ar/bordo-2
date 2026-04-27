@@ -1,1560 +1,1101 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>لوحة التحكم — دجاج بوردو</title>
-  <style>
-    :root{
-      --green:#28a745;
-      --green-dark:#1d7a33;
-      --bg:#f4f7f6;
-      --card:#ffffff;
-      --muted:#6b7280;
-      --border:#e5e7eb;
-      --shadow:0 2px 5px rgba(0,0,0,0.03);
-    }
-    *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
-    body{font-family:"Segoe UI", Tahoma, sans-serif; background:var(--bg); color:#1f2937; margin:0; line-height: 1.6;}
-    
-    header{position:sticky; top:0; background:linear-gradient(90deg, var(--green-dark), var(--green)); color:#fff; padding:15px; z-index:100; box-shadow:0 2px 10px rgba(0,0,0,.1); text-align: center;}
-    header h1{margin:0; font-size:18px;}
-
-    .container{padding:12px; max-width:1100px; margin:auto}
-
-    /* التبويبات - سحب أفقي للموبايل */
-    .tabs{display:flex; gap:8px; overflow-x: auto; padding: 4px 0 12px; margin-bottom:10px; scrollbar-width: none;}
-    .tabs::-webkit-scrollbar { display: none; }
-    .tab{background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 16px; cursor:pointer; font-weight:700; white-space: nowrap; flex-shrink: 0;}
-    .tab.active{background:var(--green); color:#fff; border-color:var(--green);}
-
-    .card{background:var(--card); border:1px solid var(--border); border-radius:15px; padding:15px; margin-bottom:15px; box-shadow:var(--shadow)}
-    
-    /* تنسيقات الجريد المعدلة للهواتف */
-    .grid{display:grid; gap:12px}
-    .grid-3{grid-template-columns:repeat(3, 1fr)}
-    
-    /* تصميم خاص للهواتف */
-    @media(max-width:768px){
-        .grid-3 { 
-            grid-template-columns: 1fr; 
-            gap: 15px;
-        }
-        
-        /* تنسيق خاص لخانات إضافة المنتج في الهاتف */
-        .product-form-fields {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .form-field-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .form-field-group.horizontal {
-            flex-direction: row;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .form-field-group.horizontal > div {
-            flex: 1;
-            min-width: 150px;
-        }
-        
-        /* تحويل الجداول إلى تصميم متوافق مع الهاتف */
-        table, thead, tbody, th, td, tr { display: block; width: 100%; }
-        thead { display: none; }
-        tr { margin-bottom: 15px; border: 1px solid var(--border); border-radius: 12px; padding: 10px; background: #fff; }
-        td { text-align: right; padding: 8px 5px; border: none; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-        td:last-child { border-bottom: none; flex-direction: row; gap: 5px; justify-content: center; flex-wrap: wrap; }
-        td::before { content: attr(data-label); font-weight: bold; color: var(--muted); font-size: 12px; margin-left: 10px; }
-    }
-    
-    /* تنسيقات متوسطة الشاشة */
-    @media (min-width: 769px) and (max-width: 1024px) {
-        .grid-3 {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    label{font-size:13px; font-weight: 600; color:#374151; display: block; margin-bottom: 5px;}
-    input, select, textarea { 
-        width:100%; 
-        padding:11px; 
-        border:1px solid #d1d5db; 
-        border-radius:10px; 
-        font-size:14px; 
-        outline: none;
-        transition: all 0.3s ease;
-    }
-    
-    input:focus, select:focus, textarea:focus {
-        border-color: var(--green);
-        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
-    }
-    
-    /* تنسيق خاص للإدخالات في الهاتف */
-    @media (max-width: 768px) {
-        input, select, textarea {
-            padding: 12px;
-            font-size: 16px; /* حجم خط أكبر للهواتف لسهولة الاستخدام */
-        }
-        
-        select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: left 15px center;
-            background-size: 12px;
-            padding-left: 40px;
-        }
-    }
-    
-    button{border:0; border-radius:10px; padding:10px 15px; font-weight:700; cursor:pointer; transition: 0.2s;}
-    .btn{background:var(--green); color:#fff;}
-    .btn:hover{background:var(--green-dark);}
-    .btn.secondary{background:#f3f4f6; color:#111827;}
-    .btn.secondary:hover{background:#e5e7eb;}
-    .btn.danger{background:#fee2e2; color:#ef4444;}
-    .btn.danger:hover{background:#fecaca;}
-    
-    /* تحسين تنسيق الأزرار في الهواتف */
-    @media (max-width: 768px) {
-        button {
-            padding: 12px 20px;
-            font-size: 15px;
-            width: 100%; /* جعل الأزرار تأخذ العرض الكامل في الهاتف */
-        }
-        
-        .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-    }
-    
-    .status{display:inline-block; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:800}
-    .s-received{background:#e3f2fd; color:#0b74de}
-    .s-preparing{background:#fff3e0; color:#f59e0b}
-    .s-on_the_way{background:#e1f5fe; color:#0288d1}
-    .s-delivered{background:#e8f5e9; color:#2e7d32}
-
-    .section{display:none}
-    .section.active{display:block}
-    
-    .oos-indicator { background: #f8d7da; color: #721c24; padding: 2px 6px; border-radius: 6px; font-size: 11px; font-weight: 700; }
-    img.thumb { width:50px; height:50px; object-fit:cover; border-radius:8px; }
-    
-    /* تصميم جديد لرفع الصور من الذاكرة المحلية */
-    .image-upload-container {
-        margin-bottom: 15px;
-    }
-    
-    .image-upload-box {
-        border: 2px dashed #d1d5db;
-        border-radius: 10px;
-        padding: 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        background: #f9fafb;
-        margin-bottom: 10px;
-    }
-    
-    .image-upload-box:hover {
-        border-color: var(--green);
-        background: #f0fdf4;
-    }
-    
-    .image-upload-box.has-image {
-        border-style: solid;
-        padding: 10px;
-    }
-    
-    .upload-icon {
-        font-size: 40px;
-        color: var(--muted);
-        margin-bottom: 10px;
-    }
-    
-    .upload-text {
-        color: var(--muted);
-        font-size: 14px;
-        margin-bottom: 5px;
-    }
-    
-    .upload-hint {
-        font-size: 12px;
-        color: #9ca3af;
-    }
-    
-    .image-preview-container {
-        position: relative;
-        max-width: 200px;
-        margin: 0 auto;
-    }
-    
-    .image-preview {
-        max-width: 100%;
-        max-height: 200px;
-        border-radius: 8px;
-        display: block;
-        margin: 0 auto;
-    }
-    
-    .remove-image-btn {
-        position: absolute;
-        top: -10px;
-        left: -10px;
-        background: #ef4444;
-        color: white;
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        cursor: pointer;
-        border: none;
-    }
-    
-    .image-size-info {
-        font-size: 11px;
-        color: var(--muted);
-        text-align: center;
-        margin-top: 5px;
-    }
-    
-    .image-input {
-        display: none;
-    }
-    
-    /* تنسيقات جديدة لقائمة الأصناف مع الترتيب */
-    .products-container {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-top: 15px;
-    }
-    
-    .product-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px;
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        cursor: move;
-    }
-    
-    .product-item:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        transform: translateY(-1px);
-        border-color: var(--green);
-    }
-    
-    .product-item.dragging {
-        opacity: 0.5;
-        background: #f0f9ff;
-    }
-    
-    .product-order-handle {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 24px;
-        height: 24px;
-        color: var(--muted);
-        cursor: grab;
-    }
-    
-    .product-order-handle:active {
-        cursor: grabbing;
-    }
-    
-    .product-order-handle span {
-        font-size: 16px;
-        line-height: 1;
-    }
-    
-    .product-order-number {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-        background: var(--green);
-        color: white;
-        border-radius: 50%;
-        font-weight: bold;
-        font-size: 14px;
-        flex-shrink: 0;
-    }
-    
-    .product-image {
-        width: 60px;
-        height: 60px;
-        border-radius: 8px;
-        overflow: hidden;
-        flex-shrink: 0;
-    }
-    
-    .product-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    .product-details {
-        flex: 1;
-        min-width: 0;
-    }
-    
-    .product-name {
-        font-weight: 700;
-        font-size: 15px;
-        margin-bottom: 4px;
-        color: #1f2937;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    .product-category {
-        font-size: 12px;
-        color: var(--muted);
-        margin-bottom: 4px;
-    }
-    
-    .product-price {
-        font-weight: 700;
-        color: var(--green-dark);
-        font-size: 14px;
-    }
-    
-    .product-stock-status {
-        font-size: 11px;
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-weight: 700;
-    }
-    
-    .stock-available {
-        background: #d1fae5;
-        color: #065f46;
-    }
-    
-    .stock-out {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-    
-    .product-actions {
-        display: flex;
-        gap: 6px;
-        flex-shrink: 0;
-    }
-    
-    .product-actions button {
-        padding: 6px 10px;
-        font-size: 12px;
-        white-space: nowrap;
-    }
-    
-    .order-save-container {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 1px solid var(--border);
-    }
-    
-    /* تنسيقات خاصة للهاتف */
-    @media (max-width: 768px) {
-        .product-item {
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .product-image {
-            width: 50px;
-            height: 50px;
-        }
-        
-        .product-order-number {
-            width: 24px;
-            height: 24px;
-            font-size: 12px;
-        }
-        
-        .product-actions {
-            width: 100%;
-            justify-content: center;
-            gap: 5px;
-        }
-        
-        .product-actions button {
-            flex: 1;
-            padding: 8px;
-            font-size: 13px;
-        }
-        
-        .image-preview-container {
-            max-width: 150px;
-        }
-        
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .form-actions button {
-            flex: 1;
-        }
-    }
-    
-    /* تصميم الجدول في وضع الهاتف */
-    @media(max-width:820px){
-        .product-item {
-            flex-direction: column;
-            align-items: stretch;
-            text-align: center;
-        }
-        
-        .product-order-number {
-            align-self: center;
-        }
-        
-        .product-image {
-            align-self: center;
-        }
-    }
-    
-    /* منطقة السحب والإفلات */
-    .drag-drop-zone {
-        min-height: 50px;
-        border: 2px dashed #e5e7eb;
-        border-radius: 12px;
-        padding: 10px;
-        background: #fafafa;
-        transition: all 0.3s ease;
-    }
-    
-    .drag-drop-zone.drag-over {
-        border-color: var(--green);
-        background: #f0fdf4;
-    }
-    
-    .empty-message {
-        text-align: center;
-        padding: 30px 20px;
-        color: var(--muted);
-        font-size: 14px;
-    }
-    
-    .empty-message-icon {
-        font-size: 32px;
-        margin-bottom: 10px;
-        opacity: 0.5;
-    }
-
-    /* رسالة النجاح */
-    .success-message {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--green);
-        color: white;
-        padding: 12px 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 1000;
-        animation: slideIn 0.3s ease;
-        display: none;
-    }
-    
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    /* تعديل صياغة نافذة التعديل */
-    .edit-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-        display: none;
-        justify-content: center;
-        align-items: center;
-    }
-    
-    .edit-modal-content {
-        background: white;
-        padding: 25px;
-        border-radius: 15px;
-        width: 90%;
-        max-width: 500px;
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-    
-    .edit-modal-content h3 {
-        margin-top: 0;
-        margin-bottom: 20px;
-        color: var(--green-dark);
-    }
-    
-    .edit-form-group {
-        margin-bottom: 15px;
-    }
-    
-    .edit-form-group label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: 600;
-        color: #374151;
-    }
-    
-    .modal-actions {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-        margin-top: 20px;
-    }
-    
-    /* حاوية رفع الصورة في نافذة التعديل */
-    .edit-image-upload-container {
-        margin-top: 10px;
-    }
-    
-    /* تنسيقات جديدة للهواتف - خانات إضافة المنتج */
-    .mobile-form-row {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    
-    @media (min-width: 481px) and (max-width: 768px) {
-        .mobile-form-row {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        
-        .mobile-form-row .full-width {
-            grid-column: span 2;
-        }
-    }
-    
-    @media (min-width: 481px) {
-        .mobile-form-row .form-group:first-child {
-            grid-column: span 2;
-        }
-    }
-    
-    /* فاصلة جميلة بين الحقول */
-    .form-separator {
-        height: 1px;
-        background: linear-gradient(to right, transparent, var(--border), transparent);
-        margin: 15px 0;
-    }
-    
-    /* تنسيق خاص لزر الإضافة في الهاتف */
-    .add-product-btn {
-        margin-top: 10px;
-        padding: 14px 20px;
-        font-size: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-    
-    .add-product-btn::before {
-        content: "+";
-        font-size: 20px;
-        font-weight: bold;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>لوحة التحكم - دجاج بوردو</title>
+  
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      padding-bottom: 20px;
+    }
+    
+    :root {
+      --primary: #28a745;
+      --primary-dark: #1d7a33;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --info: #17a2b8;
+      --dark: #1a1a2e;
+      --gray: #6c757d;
+      --light: #f8f9fa;
+      --border: #dee2e6;
+      --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      color: white;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow);
+    }
+    .header h1 {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+    .header p {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      white-space: nowrap;
+      position: sticky;
+      top: 70px;
+      z-index: 99;
+    }
+    .tab {
+      padding: 10px 20px;
+      background: var(--light);
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+    .tab.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .section {
+      display: none;
+    }
+    .section.active {
+      display: block;
+    }
+    
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--primary);
+      display: inline-block;
+    }
+    
+    /* Forms */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--dark);
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 14px;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+    .btn-danger:hover { background: #c82333; }
+    .btn-warning {
+      background: var(--warning);
+      color: var(--dark);
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    
+    /* Grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    /* Tables */
+    .table-responsive {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: var(--light);
+      font-weight: 600;
+    }
+    
+    /* Image Upload */
+    .image-upload-box {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+      background: var(--light);
+    }
+    .image-upload-box:hover {
+      border-color: var(--primary);
+      background: #e8f5e9;
+    }
+    .image-preview {
+      max-width: 100px;
+      max-height: 100px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .image-input { display: none; }
+    
+    /* Product List with Drag & Drop */
+    .products-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .product-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--light);
+      border-radius: 12px;
+      cursor: move;
+      transition: 0.2s;
+    }
+    .product-item:hover {
+      background: #e8f5e9;
+    }
+    .product-item.dragging {
+      opacity: 0.5;
+    }
+    .drag-handle {
+      cursor: grab;
+      color: var(--gray);
+      font-size: 20px;
+    }
+    .product-img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    .product-info {
+      flex: 1;
+    }
+    .product-name {
+      font-weight: 600;
+    }
+    .product-price {
+      color: var(--primary);
+      font-size: 13px;
+    }
+    .product-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    /* Order Card */
+    .order-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-right: 4px solid var(--primary);
+      box-shadow: var(--shadow);
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .order-status {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-preparing { background: #ffe5d0; color: #fd7e14; }
+    .status-delivering { background: #cce5ff; color: #004085; }
+    .status-delivered { background: #d4edda; color: #155724; }
+    .status-cancelled { background: #f8d7da; color: #721c24; }
+    
+    .order-items {
+      margin: 10px 0;
+      font-size: 14px;
+      background: var(--light);
+      padding: 10px;
+      border-radius: 8px;
+    }
+    
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body {
+      padding: 20px;
+    }
+    .modal-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      z-index: 2000;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .product-item { flex-wrap: wrap; }
+      .product-actions { width: 100%; justify-content: center; }
+      th, td { display: block; }
+      th { display: none; }
+      td { padding: 8px; border-bottom: 1px solid var(--border); }
+    }
+  </style>
 </head>
 <body>
 
-  <header><h1>لوحة تحكم دجاج بوردو</h1></header>
+<div class="header">
+  <h1> دجاج بوردو - لوحة التحكم</h1>
+  <p>إدارة المنتجات، التصنيفات، المناطق، طرق الدفع والطلبات</p>
+</div>
 
-  <div class="container">
-    <div class="tabs">
-      <div class="tab active" data-target="sec-products">الأصناف</div>
-      <div class="tab" data-target="sec-categories">التصنيفات</div>
-      <div class="tab" data-target="sec-areas">المناطق</div>
-      <div class="tab" data-target="sec-payments">الدفع</div> 
-      <div class="tab" data-target="sec-orders">الطلبات</div>
-    </div>
-    
-    <section id="sec-products" class="section active">
-      <div class="card">
-        <h3 style="margin-top: 0; margin-bottom: 15px;">إضافة صنف جديد</h3>
-        
-        <!-- تصميم جديد محسّن للهواتف -->
-        <div class="product-form-fields">
-          <!-- الصف الأول: الاسم والسعر -->
-          <div class="form-field-group horizontal">
-            <div>
-              <label for="prod-name">اسم الصنف</label>
-              <input id="prod-name" placeholder="أدخل اسم الصنف" />
-            </div>
-            <div>
-              <label for="prod-price">السعر (دينار)</label>
-              <input id="prod-price" type="number" step="0.01" placeholder="0.00" min="0" />
-            </div>
-          </div>
-          
-          <!-- الصف الثاني: التصنيف -->
-          <div class="form-field-group">
-            <label for="prod-category">التصنيف</label>
-            <select id="prod-category">
-              <option value="">بدون تصنيف</option>
-              <!-- سيتم تعبئة التصنيفات هنا -->
-            </select>
-          </div>
-          
-          <!-- فاصل -->
-          <div class="form-separator"></div>
-          
-          <!-- حاوية رفع الصورة -->
-          <div class="form-field-group">
-            <label>صورة الصنف</label>
-            <div id="imageUploadBox" class="image-upload-box">
-              <div id="uploadIcon" class="upload-icon">📁</div>
-              <div id="uploadText" class="upload-text">انقر لرفع صورة</div>
-              <div class="upload-hint">(يمكن رفع الصور من ذاكرة الجهاز)</div>
-              <input type="file" id="productImageInput" class="image-input" accept="image/*">
-            </div>
-            
-            <div id="imagePreviewContainer" class="image-preview-container" style="display: none;">
-              <img id="imagePreview" class="image-preview" src="" alt="معاينة الصورة">
-              <button type="button" class="remove-image-btn" onclick="removeProductImage()">×</button>
-              <div id="imageSizeInfo" class="image-size-info"></div>
-            </div>
-          </div>
-          
-          <!-- الوصف -->
-          <div class="form-field-group">
-            <label for="prod-description">الوصف (اختياري)</label>
-            <textarea id="prod-description" rows="2" placeholder="أدخل وصفاً مختصراً للصنف..."></textarea>
-          </div>
-          
-          <!-- حالة التوفر -->
-          <div class="form-field-group">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" id="prod-outofstock" />
-              <span>نفذت الكمية</span>
-            </label>
-          </div>
-          
-          <!-- زر الإضافة -->
-          <button class="btn add-product-btn" onclick="addProduct()">إضافة الصنف</button>
+<div class="tabs">
+  <div class="tab active" data-tab="products">📦 الأصناف</div>
+  <div class="tab" data-tab="categories">🏷️ التصنيفات</div>
+  <div class="tab" data-tab="areas">📍 المناطق</div>
+  <div class="tab" data-tab="payments">💳 طرق الدفع</div>
+  <div class="tab" data-tab="orders">📋 الطلبات</div>
+</div>
+
+<div class="container">
+  
+  <!-- ==================== قسم الأصناف ==================== -->
+  <div id="productsSection" class="section active">
+    <!-- إضافة منتج -->
+    <div class="card">
+      <div class="card-title">➕ إضافة صنف جديد</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>اسم الصنف *</label>
+          <input type="text" id="prodName" placeholder="مثال: دجاج بروستد">
+        </div>
+        <div class="form-group">
+          <label>السعر (دينار) *</label>
+          <input type="number" id="prodPrice" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>التصنيف</label>
+          <select id="prodCategory">
+            <option value="">بدون تصنيف</option>
+          </select>
         </div>
       </div>
       
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="margin: 0;">قائمة الأصناف</h3>
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <span style="font-size: 13px; color: var(--muted);">اسحب الأصناف لتغيير ترتيبها</span>
-            <button class="btn" onclick="saveProductOrder()">حفظ الترتيب</button>
-          </div>
+      <div class="form-group">
+        <label>صورة المنتج</label>
+        <div class="image-upload-box" onclick="document.getElementById('prodImageInput').click()">
+          <div>📸 انقر لرفع صورة</div>
+          <div style="font-size:12px; color:gray;">(jpg, png - base64)</div>
+          <input type="file" id="prodImageInput" accept="image/*" style="display:none">
         </div>
-        
-        <div id="products-list" class="products-container">
-          <!-- سيتم ملء الأصناف هنا -->
-        </div>
-        
-        <div id="empty-products-message" class="empty-message" style="display: none;">
-          <div class="empty-message-icon">🛒</div>
-          <div>لا توجد أصناف حالياً</div>
-          <div style="font-size: 12px; margin-top: 5px;">قم بإضافة أصناف جديدة لتبدأ</div>
-        </div>
-      </div>
-    </section>
-    
-    <section id="sec-categories" class="section">
-      <div class="card">
-        <label>اسم التصنيف</label>
-        <div style="display:flex; gap:10px">
-          <input id="cat-name" />
-          <button class="btn" onclick="addCategory()">+ إضافة</button>
-        </div>
-      </div>
-      <div class="card" style="padding:5px;">
-        <table><tbody id="cats-tbody"></tbody></table>
-      </div>
-    </section>
-
-    <section id="sec-areas" class="section">
-        <div class="card">
-            <div class="grid grid-3">
-                <div><label>اسم المنطقة</label><input id="area-name" /></div>
-                <div><label>رسوم التوصيل</label><input id="area-price" type="number" step="0.01" /></div>
-                <button class="btn" onclick="addArea()" style="align-self:end">+ إضافة</button>
-            </div>
-        </div>
-        <div class="card" style="padding:5px;"><table><tbody id="areas-tbody"></tbody></table></div>
-    </section>
-    
-    <section id="sec-payments" class="section">
-        <div class="card">
-            <label>طريقة الدفع</label>
-            <div style="display:flex; gap:10px">
-                <input id="pay-name" />
-                <button class="btn" onclick="addPaymentMethod()">+ إضافة</button>
-            </div>
-        </div>
-        <div class="card" style="padding:5px;"><table><tbody id="payments-tbody"></tbody></table></div>
-    </section>
-
-    <section id="sec-orders" class="section">
-        <div class="card" style="padding:5px; overflow-x:auto;">
-          <table>
-            <thead><tr><th>العميل</th><th>العناصر</th><th>الإجمالي</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-            <tbody id="orders-tbody"></tbody>
-          </table>
-        </div>
-    </section>
-  </div>
-
-  <!-- نافذة تعديل المنتج -->
-  <div id="editProductModal" class="edit-modal">
-    <div class="edit-modal-content">
-      <h3>تعديل المنتج</h3>
-      <div class="edit-form-group">
-        <label>اسم الصنف</label>
-        <input type="text" id="edit-name" />
-      </div>
-      <div class="edit-form-group">
-        <label>السعر (دينار)</label>
-        <input type="number" id="edit-price" step="0.01" />
-      </div>
-      <div class="edit-form-group">
-        <label>التصنيف</label>
-        <select id="edit-category"></select>
+        <div id="prodImagePreview"></div>
       </div>
       
-      <!-- حاوية رفع الصورة في نافذة التعديل -->
-      <div class="edit-form-group edit-image-upload-container">
-        <label>صورة الصنف</label>
-        <div id="editImageUploadBox" class="image-upload-box">
-          <div id="editUploadIcon" class="upload-icon">📁</div>
-          <div id="editUploadText" class="upload-text">انقر لتغيير الصورة</div>
-          <div class="upload-hint">(يمكن رفع صورة جديدة من الذاكرة)</div>
-          <input type="file" id="editProductImageInput" class="image-input" accept="image/*">
-        </div>
-        
-        <div id="editImagePreviewContainer" class="image-preview-container" style="display: none;">
-          <img id="editImagePreview" class="image-preview" src="" alt="معاينة الصورة">
-          <button type="button" class="remove-image-btn" onclick="removeEditProductImage()">×</button>
-          <div id="editImageSizeInfo" class="image-size-info"></div>
-        </div>
-        
-        <div id="editCurrentImageContainer" class="image-preview-container" style="margin-top: 10px;">
-          <div style="font-size: 12px; color: var(--muted); margin-bottom: 5px;">الصورة الحالية:</div>
-          <img id="editCurrentImage" class="image-preview" src="" alt="الصورة الحالية">
-          <div id="editCurrentImageInfo" class="image-size-info"></div>
-        </div>
-      </div>
-      
-      <div class="edit-form-group">
+      <div class="form-group">
         <label>الوصف</label>
-        <textarea id="edit-description" rows="3"></textarea>
+        <textarea id="prodDesc" rows="2" placeholder="وصف قصير للمنتج..."></textarea>
       </div>
-      <div class="edit-form-group">
-        <label>
-          <input type="checkbox" id="edit-outofstock" />
-          <span style="margin-right: 8px;">نفذت الكمية</span>
+      
+      <div class="form-group">
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="prodOutOfStock"> 🚫 نفدت الكمية
         </label>
       </div>
-      <div class="modal-actions">
-        <button class="btn secondary" onclick="closeEditModal()">إلغاء</button>
-        <button class="btn" onclick="updateProduct()">حفظ التعديلات</button>
+      
+      <button class="btn btn-primary" onclick="addProduct()">+ إضافة الصنف</button>
+    </div>
+    
+    <!-- قائمة الأصناف مع خاصية السحب -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div class="card-title" style="border-bottom:none;">📋 قائمة الأصناف</div>
+        <button class="btn btn-primary btn-sm" onclick="saveProductOrder()">💾 حفظ الترتيب</button>
+      </div>
+      <div id="productsList" class="products-list"></div>
+    </div>
+  </div>
+  
+  <!-- ==================== قسم التصنيفات ==================== -->
+  <div id="categoriesSection" class="section">
+    <div class="card">
+      <div class="card-title">➕ إضافة تصنيف جديد</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>اسم التصنيف</label>
+          <input type="text" id="catName" placeholder="مثال: مشاوي">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addCategory()">+ إضافة تصنيف</button>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">📋 قائمة التصنيفات</div>
+      <div class="table-responsive">
+        <table id="categoriesTable">
+          <thead><tr><th>الاسم</th><th>الإجراءات</th></thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
   </div>
-
-  <!-- رسالة النجاح -->
-  <div id="successMessage" class="success-message">
-    <span id="successText">تمت العملية بنجاح!</span>
+  
+  <!-- ==================== قسم المناطق ==================== -->
+  <div id="areasSection" class="section">
+    <div class="card">
+      <div class="card-title">➕ إضافة منطقة توصيل جديدة</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>اسم المنطقة</label>
+          <input type="text" id="areaName" placeholder="مثال: تاجوراء">
+        </div>
+        <div class="form-group">
+          <label>رسوم التوصيل (دينار)</label>
+          <input type="number" id="areaPrice" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addArea()">+ إضافة منطقة</button>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">📍 قائمة المناطق</div>
+      <div class="table-responsive">
+        <table id="areasTable">
+          <thead><tr><th>المنطقة</th><th>رسوم التوصيل</th><th>الإجراءات</th></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
   </div>
+  
+  <!-- ==================== قسم طرق الدفع ==================== -->
+  <div id="paymentsSection" class="section">
+    <div class="card">
+      <div class="card-title">➕ إضافة طريقة دفع جديدة</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>اسم طريقة الدفع</label>
+          <input type="text" id="payName" placeholder="مثال: موبي كاش">
+        </div>
+        <div class="form-group">
+          <label>أيقونة الطريقة</label>
+          <div class="image-upload-box" onclick="document.getElementById('payIconInput').click()">
+            <div>🖼️ انقر لرفع أيقونة</div>
+            <input type="file" id="payIconInput" accept="image/*" style="display:none">
+          </div>
+          <div id="payIconPreview"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addPaymentMethod()">+ إضافة طريقة دفع</button>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">💳 قائمة طرق الدفع</div>
+      <div class="table-responsive">
+        <table id="paymentsTable">
+          <thead><tr><th>الأيقونة</th><th>الاسم</th><th>الحالة</th><th>الإجراءات</th></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ==================== قسم الطلبات ==================== -->
+  <div id="ordersSection" class="section">
+    <div class="card">
+      <div class="card-title">📋 قائمة الطلبات</div>
+      <div id="ordersList"></div>
+    </div>
+  </div>
+  
+</div>
+
+<!-- نافذة تعديل المنتج -->
+<div id="editProductModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>✏️ تعديل المنتج</h3>
+      <button onclick="closeEditModal()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>اسم الصنف</label>
+        <input type="text" id="editName">
+      </div>
+      <div class="form-group">
+        <label>السعر</label>
+        <input type="number" id="editPrice" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>التصنيف</label>
+        <select id="editCategory"></select>
+      </div>
+      <div class="form-group">
+        <label>الوصف</label>
+        <textarea id="editDesc" rows="2"></textarea>
+      </div>
+      <div class="form-group">
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="editOutOfStock"> نفدت الكمية
+        </label>
+      </div>
+      <div class="form-group">
+        <label>الصورة الحالية</label>
+        <img id="editCurrentImage" style="width:80px; height:80px; object-fit:cover; border-radius:10px;">
+        <div class="image-upload-box" style="margin-top:10px;" onclick="document.getElementById('editImageInput').click()">
+          <div>🔄 تغيير الصورة</div>
+          <input type="file" id="editImageInput" accept="image/*" style="display:none">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="closeEditModal()">إلغاء</button>
+      <button class="btn btn-primary" onclick="updateProduct()">حفظ التعديلات</button>
+    </div>
+  </div>
+</div>
 
 <script>
-  /* ===== إعداد Firebase مع قاعدة البيانات الجديدة ===== */
+  // ==================== Firebase Config ====================
   const firebaseConfig = {
-  apiKey: "AIzaSyC1cXTxqehGPW5EBjEf2vVsXtA7FyDe3R8",
-  authDomain: "bordo-911.firebaseapp.com",
-  databaseURL: "https://bordo-911-default-rtdb.firebaseio.com",
-  projectId: "bordo-911",
-  storageBucket: "bordo-911.firebasestorage.app",
-  messagingSenderId: "616521600914",
-  appId: "1:616521600914:web:88f63073acc777a5a43b4b"
-};
+    apiKey: "AIzaSyC1cXTxqehGPW5EBjEf2vVsXtA7FyDe3R8",
+    authDomain: "bordo-911.firebaseapp.com",
+    databaseURL: "https://bordo-911-default-rtdb.firebaseio.com",
+    projectId: "bordo-911",
+    storageBucket: "bordo-911.firebasestorage.app",
+    messagingSenderId: "616521600914",
+    appId: "1:616521600914:web:88f63073acc777a5a43b4b"
+  };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
-
-  let categories = {}, products = {}, deliveryAreas = {}, paymentMethods = {}, orders = {};
-  let productOrder = []; // لتخزين ترتيب الأصناف
-  let currentProductImage = null; // لتخزين الصورة المرفوعة حالياً
-  let currentEditProductKey = ''; // لتخزين مفتاح المنتج الذي يتم تعديله
-  let currentEditProductImage = null; // لتخزين الصورة الجديدة في نافذة التعديل
-
-  // التنقل بين التبويبات
+  
+  // ==================== متغيرات عامة ====================
+  let allProducts = {};
+  let allCategories = {};
+  let allAreas = {};
+  let allPayments = {};
+  let orders = {};
+  let productOrder = [];
+  let currentEditKey = null;
+  let currentEditImageBase64 = null;
+  let currentProductImage = null;
+  let currentPaymentIcon = null;
+  
+  const UNIFIED_IMAGE = "https://up6.cc/2025/10/176460585993361.jpg";
+  
+  // ==================== تحميل البيانات ====================
+  function loadData() {
+    db.ref('products').on('value', (s) => {
+      allProducts = s.val() || {};
+      renderProductsList();
+      updateCategorySelects();
+    });
+    db.ref('productOrder').on('value', (s) => {
+      productOrder = s.val() || [];
+      renderProductsList();
+    });
+    db.ref('categories').on('value', (s) => {
+      allCategories = s.val() || {};
+      renderCategories();
+      updateCategorySelects();
+    });
+    db.ref('deliveryAreas').on('value', (s) => {
+      allAreas = s.val() || {};
+      renderAreas();
+    });
+    db.ref('paymentMethods').on('value', (s) => {
+      allPayments = s.val() || {};
+      renderPayments();
+    });
+    db.ref('orders').on('value', (s) => {
+      orders = s.val() || {};
+      renderOrders();
+    });
+  }
+  
+  // ==================== رفع الصور ====================
+  function imageToBase64(file, callback) {
+    const reader = new FileReader();
+    reader.onload = (e) => callback(e.target.result);
+    reader.readAsDataURL(file);
+  }
+  
+  document.getElementById('prodImageInput').onchange = (e) => {
+    if(e.target.files[0]) {
+      imageToBase64(e.target.files[0], (base64) => {
+        currentProductImage = base64;
+        document.getElementById('prodImagePreview').innerHTML = `<img src="${base64}" class="image-preview">`;
+      });
+    }
+  };
+  
+  document.getElementById('payIconInput').onchange = (e) => {
+    if(e.target.files[0]) {
+      imageToBase64(e.target.files[0], (base64) => {
+        currentPaymentIcon = base64;
+        document.getElementById('payIconPreview').innerHTML = `<img src="${base64}" class="image-preview">`;
+      });
+    }
+  };
+  
+  // ==================== إدارة المنتجات ====================
+  function addProduct() {
+    const name = document.getElementById('prodName').value.trim();
+    const price = parseFloat(document.getElementById('prodPrice').value);
+    const category = document.getElementById('prodCategory').value;
+    const desc = document.getElementById('prodDesc').value.trim();
+    const outOfStock = document.getElementById('prodOutOfStock').checked;
+    
+    if(!name) { showToast("يرجى إدخال اسم المنتج", "error"); return; }
+    if(isNaN(price) || price <= 0) { showToast("يرجى إدخال سعر صحيح", "error"); return; }
+    
+    const newProduct = { name, price, category: category || null, desc, outOfStock, createdAt: Date.now() };
+    if(currentProductImage) newProduct.image = currentProductImage;
+    
+    db.ref('products').push(newProduct).then(() => {
+      showToast("✅ تم إضافة المنتج بنجاح", "success");
+      document.getElementById('prodName').value = '';
+      document.getElementById('prodPrice').value = '';
+      document.getElementById('prodDesc').value = '';
+      document.getElementById('prodOutOfStock').checked = false;
+      document.getElementById('prodImagePreview').innerHTML = '';
+      currentProductImage = null;
+    }).catch(err => showToast(err.message, "error"));
+  }
+  
+  let draggedItem = null;
+  function renderProductsList() {
+    const container = document.getElementById('productsList');
+    if(!container) return;
+    container.innerHTML = '';
+    
+    let productsArray = Object.keys(allProducts).map(key => ({ id: key, ...allProducts[key] }));
+    if(productOrder.length) {
+      productsArray.sort((a,b) => {
+        let ia = productOrder.indexOf(a.id); if(ia===-1) ia=Infinity;
+        let ib = productOrder.indexOf(b.id); if(ib===-1) ib=Infinity;
+        return ia - ib;
+      });
+    }
+    
+    if(productsArray.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:gray;">لا توجد منتجات حالياً</div>';
+      return;
+    }
+    
+    productsArray.forEach((p, idx) => {
+      const div = document.createElement('div');
+      div.className = 'product-item';
+      div.draggable = true;
+      div.dataset.id = p.id;
+      div.innerHTML = `
+        <div class="drag-handle" style="cursor:grab;">⋮⋮</div>
+        <img class="product-img" src="${p.image || UNIFIED_IMAGE}" onerror="this.src='${UNIFIED_IMAGE}'">
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-price">${p.price} دينار</div>
+          <div style="font-size:12px; color:gray;">${p.category || 'بدون تصنيف'}</div>
+        </div>
+        <div class="product-actions">
+          <button class="btn btn-warning btn-sm" onclick="openEditModal('${p.id}')">✏️ تعديل</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">🗑️ حذف</button>
+        </div>
+      `;
+      
+      div.addEventListener('dragstart', handleDragStart);
+      div.addEventListener('dragover', handleDragOver);
+      div.addEventListener('drop', handleDrop);
+      container.appendChild(div);
+    });
+  }
+  
+  function handleDragStart(e) {
+    draggedItem = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    if(draggedItem !== this) {
+      const parent = this.parentNode;
+      const children = [...parent.children];
+      const draggedIndex = children.indexOf(draggedItem);
+      const targetIndex = children.indexOf(this);
+      if(draggedIndex < targetIndex) {
+        parent.insertBefore(draggedItem, this.nextSibling);
+      } else {
+        parent.insertBefore(draggedItem, this);
+      }
+    }
+    draggedItem.classList.remove('dragging');
+    draggedItem = null;
+  }
+  
+  function saveProductOrder() {
+    const items = document.querySelectorAll('#productsList .product-item');
+    const newOrder = Array.from(items).map(item => item.dataset.id);
+    db.ref('productOrder').set(newOrder).then(() => {
+      showToast("💾 تم حفظ ترتيب الأصناف", "success");
+    });
+  }
+  
+  function openEditModal(key) {
+    const p = allProducts[key];
+    if(!p) return;
+    currentEditKey = key;
+    document.getElementById('editName').value = p.name || '';
+    document.getElementById('editPrice').value = p.price || '';
+    document.getElementById('editDesc').value = p.desc || '';
+    document.getElementById('editOutOfStock').checked = p.outOfStock || false;
+    document.getElementById('editCurrentImage').src = p.image || UNIFIED_IMAGE;
+    
+    const catSelect = document.getElementById('editCategory');
+    catSelect.innerHTML = '<option value="">بدون تصنيف</option>';
+    Object.keys(allCategories).forEach(k => {
+      catSelect.innerHTML += `<option value="${allCategories[k].name}">${allCategories[k].name}</option>`;
+    });
+    if(p.category) catSelect.value = p.category;
+    
+    document.getElementById('editProductModal').style.display = 'flex';
+  }
+  
+  function closeEditModal() {
+    document.getElementById('editProductModal').style.display = 'none';
+    currentEditKey = null;
+    currentEditImageBase64 = null;
+  }
+  
+  document.getElementById('editImageInput').onchange = (e) => {
+    if(e.target.files[0]) {
+      imageToBase64(e.target.files[0], (base64) => {
+        currentEditImageBase64 = base64;
+        document.getElementById('editCurrentImage').src = base64;
+      });
+    }
+  };
+  
+  function updateProduct() {
+    if(!currentEditKey) return;
+    const updates = {
+      name: document.getElementById('editName').value.trim(),
+      price: parseFloat(document.getElementById('editPrice').value),
+      category: document.getElementById('editCategory').value || null,
+      desc: document.getElementById('editDesc').value.trim(),
+      outOfStock: document.getElementById('editOutOfStock').checked,
+      updatedAt: Date.now()
+    };
+    if(currentEditImageBase64) updates.image = currentEditImageBase64;
+    
+    db.ref(`products/${currentEditKey}`).update(updates).then(() => {
+      showToast("✅ تم تحديث المنتج", "success");
+      closeEditModal();
+    }).catch(err => showToast(err.message, "error"));
+  }
+  
+  function deleteProduct(key) {
+    if(confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+      db.ref(`products/${key}`).remove().then(() => {
+        const newOrder = productOrder.filter(id => id !== key);
+        db.ref('productOrder').set(newOrder);
+        showToast("🗑️ تم حذف المنتج", "success");
+      });
+    }
+  }
+  
+  // ==================== إدارة التصنيفات ====================
+  function addCategory() {
+    const name = document.getElementById('catName').value.trim();
+    if(!name) { showToast("يرجى إدخال اسم التصنيف", "error"); return; }
+    db.ref('categories').push({ name }).then(() => {
+      showToast("✅ تم إضافة التصنيف", "success");
+      document.getElementById('catName').value = '';
+    });
+  }
+  
+  function renderCategories() {
+    const tbody = document.querySelector('#categoriesTable tbody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    Object.keys(allCategories).forEach(key => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${allCategories[key].name}</td>
+          <td>
+            <button class="btn btn-warning btn-sm" onclick="editCategory('${key}')">✏️ تعديل</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteCategory('${key}')">🗑️ حذف</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+  
+  function editCategory(key) {
+    const newName = prompt("الاسم الجديد:", allCategories[key].name);
+    if(newName) db.ref(`categories/${key}`).update({ name: newName });
+  }
+  
+  function deleteCategory(key) {
+    if(confirm('حذف هذا التصنيف؟')) db.ref(`categories/${key}`).remove();
+  }
+  
+  function updateCategorySelects() {
+    const prodSelect = document.getElementById('prodCategory');
+    const editSelect = document.getElementById('editCategory');
+    if(prodSelect) {
+      prodSelect.innerHTML = '<option value="">بدون تصنيف</option>';
+      Object.values(allCategories).forEach(c => {
+        prodSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+      });
+    }
+    if(editSelect) {
+      editSelect.innerHTML = '<option value="">بدون تصنيف</option>';
+      Object.values(allCategories).forEach(c => {
+        editSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+      });
+    }
+  }
+  
+  // ==================== إدارة المناطق ====================
+  function addArea() {
+    const name = document.getElementById('areaName').value.trim();
+    const price = parseFloat(document.getElementById('areaPrice').value);
+    if(!name) { showToast("يرجى إدخال اسم المنطقة", "error"); return; }
+    if(isNaN(price)) { showToast("يرجى إدخال سعر التوصيل", "error"); return; }
+    db.ref('deliveryAreas').push({ name, price }).then(() => {
+      showToast("✅ تم إضافة المنطقة", "success");
+      document.getElementById('areaName').value = '';
+      document.getElementById('areaPrice').value = '';
+    });
+  }
+  
+  function renderAreas() {
+    const tbody = document.querySelector('#areasTable tbody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    Object.keys(allAreas).forEach(key => {
+      const a = allAreas[key];
+      tbody.innerHTML += `
+        <tr>
+          <td>${a.name}</td>
+          <td>${a.price} دينار</td>
+          <td>
+            <button class="btn btn-warning btn-sm" onclick="editArea('${key}')">✏️ تعديل</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteArea('${key}')">🗑️ حذف</button>
+           </td>
+         </tr>
+      `;
+    });
+  }
+  
+  function editArea(key) {
+    const a = allAreas[key];
+    const name = prompt("اسم المنطقة:", a.name);
+    const price = prompt("رسوم التوصيل:", a.price);
+    if(name && price) db.ref(`deliveryAreas/${key}`).update({ name, price: parseFloat(price) });
+  }
+  
+  function deleteArea(key) {
+    if(confirm('حذف هذه المنطقة؟')) db.ref(`deliveryAreas/${key}`).remove();
+  }
+  
+  // ==================== إدارة طرق الدفع ====================
+  function addPaymentMethod() {
+    const name = document.getElementById('payName').value.trim();
+    if(!name) { showToast("يرجى إدخال اسم طريقة الدفع", "error"); return; }
+    const newPayment = { name, enabled: true };
+    if(currentPaymentIcon) newPayment.icon = currentPaymentIcon;
+    db.ref('paymentMethods').push(newPayment).then(() => {
+      showToast("✅ تم إضافة طريقة الدفع", "success");
+      document.getElementById('payName').value = '';
+      document.getElementById('payIconPreview').innerHTML = '';
+      currentPaymentIcon = null;
+    });
+  }
+  
+  function renderPayments() {
+    const tbody = document.querySelector('#paymentsTable tbody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    Object.keys(allPayments).forEach(key => {
+      const p = allPayments[key];
+      tbody.innerHTML += `
+        <tr>
+          <td><img src="${p.icon || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; object-fit:contain;"></td>
+          <td>${p.name}</td>
+          <td>
+            <span style="cursor:pointer; padding:4px 12px; border-radius:20px; background:${p.enabled ? '#28a745' : '#dc3545'}; color:white;" onclick="togglePayment('${key}', ${!p.enabled})">
+              ${p.enabled ? '✅ مفعل' : '❌ معطل'}
+            </span>
+            </td>
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="deletePayment('${key}')">🗑️ حذف</button>
+            </td>
+        </tr>
+      `;
+    });
+  }
+  
+  function togglePayment(key, enable) {
+    db.ref(`paymentMethods/${key}`).update({ enabled: enable });
+  }
+  
+  function deletePayment(key) {
+    if(confirm('حذف طريقة الدفع هذه؟')) db.ref(`paymentMethods/${key}`).remove();
+  }
+  
+  // ==================== إدارة الطلبات (مفصلة) ====================
+  function renderOrders() {
+    const container = document.getElementById('ordersList');
+    if(!container) return;
+    container.innerHTML = '';
+    const sorted = Object.keys(orders).map(k => ({ id: k, ...orders[k] })).sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+    
+    if(sorted.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:gray;">لا توجد طلبات حالياً</div>';
+      return;
+    }
+    
+    sorted.forEach(order => {
+      let itemsHtml = '';
+      if(order.items) {
+        Object.values(order.items).forEach(item => {
+          itemsHtml += `${item.qty} × ${item.name} = ${(item.price * item.qty).toFixed(2)} د<br>`;
+        });
+      }
+      
+      // حساب سعر التوصيل والمبلغ الإجمالي
+      let deliveryFee = order.deliveryFee || 0;
+      let deliveryType = order.deliveryType || 'delivery';
+      let subtotal = order.subtotal || 0;
+      let finalTotal = order.finalTotal || (subtotal + deliveryFee);
+      
+      const statusClass = `status-${order.status || 'pending'}`;
+      const statusText = {
+        pending: '⏳ قيد الانتظار',
+        preparing: '👨‍🍳 قيد التحضير',
+        delivering: '🚚 في الطريق',
+        delivered: '✅ تم التسليم',
+        cancelled: '❌ ملغي'
+      }[order.status] || order.status;
+      
+      // نص نوع الطلب
+      let deliveryTypeText = (deliveryType === 'pickup') ? '📦 استلام من المطعم' : '🚚 توصيل للمنزل';
+      
+      container.innerHTML += `
+        <div class="order-card">
+          <div class="order-header">
+            <span class="order-status ${statusClass}">${statusText}</span>
+            <span>#${order.id.slice(-6)}</span>
+            <span>📞 ${order.userPhone}</span>
+          </div>
+          <div class="order-items">
+            <strong>📦 الطلب:</strong><br>${itemsHtml}
+          </div>
+          <div style="margin:8px 0;">
+            <strong>💰 المبلغ الإجمالي:</strong> ${finalTotal} دينار<br>
+            <strong>📊 تفاصيل المبلغ:</strong><br>
+            &nbsp;&nbsp;• قيمة الأصناف: ${subtotal} دينار<br>
+            &nbsp;&nbsp;• سعر التوصيل: ${deliveryFee} دينار<br>
+            <strong>📍 نوع الطلب:</strong> ${deliveryTypeText}<br>
+            <strong>📍 المنطقة:</strong> ${order.userArea || 'غير محدد'}<br>
+            <strong>💳 الدفع:</strong> ${order.paymentType || 'غير محدد'}<br>
+            <strong>📝 ملاحظات:</strong> ${order.notes || 'لا يوجد'}
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+            <select onchange="updateOrderStatus('${order.id}', this.value)" style="padding:8px; border-radius:8px;">
+              <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>⏳ قيد الانتظار</option>
+              <option value="preparing" ${order.status === 'preparing' ? 'selected' : ''}>👨‍🍳 قيد التحضير</option>
+              <option value="delivering" ${order.status === 'delivering' ? 'selected' : ''}>🚚 في الطريق</option>
+              <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>✅ تم التسليم</option>
+              <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>❌ ملغي</option>
+            </select>
+            <button class="btn btn-danger btn-sm" onclick="deleteOrder('${order.id}')">🗑️ حذف الطلب</button>
+          </div>
+          <div style="font-size:11px; color:gray; margin-top:10px;">📅 ${new Date(order.createdAt).toLocaleString('ar')}</div>
+        </div>
+      `;
+    });
+  }
+  
+  function updateOrderStatus(orderId, status) {
+    db.ref(`orders/${orderId}`).update({ status, updatedAt: Date.now() }).then(() => {
+      showToast("✅ تم تحديث حالة الطلب", "success");
+    });
+  }
+  
+  function deleteOrder(orderId) {
+    if(confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
+      db.ref(`orders/${orderId}`).remove().then(() => {
+        showToast("🗑️ تم حذف الطلب", "success");
+      });
+    }
+  }
+  
+  // ==================== التبويبات ====================
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.getElementById(tab.dataset.target).classList.add('active');
+      document.getElementById(`${tab.dataset.tab}Section`).classList.add('active');
     });
   });
-
-  // تحويل الصورة إلى Base64
-  function convertImageToBase64(file, callback) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      callback(e.target.result);
-    };
-    reader.readAsDataURL(file);
+  
+  // ==================== Toast ====================
+  function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    if(type === 'error') toast.style.background = '#dc3545';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
   }
-
-  // تهيئة أحداث رفع الصورة للمنتج الجديد
-  function initializeImageUpload() {
-    const imageUploadBox = document.getElementById('imageUploadBox');
-    const productImageInput = document.getElementById('productImageInput');
+  
+  // ==================== تهيئة البيانات الافتراضية ====================
+  function initDefaultPaymentMethods() {
+    const defaultPayments = [
+      { name: "نقدي عند الإستلام", icon: "https://up6.cc/2026/04/177724255109191.png", enabled: true },
+      { name: "موبي كاش", icon: "https://up6.cc/2026/04/177724258290421.png", enabled: true },
+      { name: "إدفع لي", icon: "https://up6.cc/2026/04/177724263811781.png", enabled: true },
+      { name: "يسر باي", icon: "https://up6.cc/2026/04/17772426587471.png", enabled: true },
+      { name: "وان باي", icon: "https://up6.cc/2026/04/177724267941831.png", enabled: true },
+      { name: "بطاقات مصرفية", icon: "https://up6.cc/2026/04/177724285936881.png", enabled: true }
+    ];
     
-    imageUploadBox.addEventListener('click', () => {
-      productImageInput.click();
-    });
-    
-    productImageInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files[0]) {
-        const file = e.target.files[0];
-        
-        // التحقق من حجم الصورة (لا نحدد حجم معين، فقط نعرض معلومات)
-        const fileSize = (file.size / 1024).toFixed(2);
-        
-        // تحويل الصورة إلى Base64
-        convertImageToBase64(file, (base64Image) => {
-          currentProductImage = base64Image;
-          
-          // عرض المعاينة
-          const preview = document.getElementById('imagePreview');
-          const container = document.getElementById('imagePreviewContainer');
-          const sizeInfo = document.getElementById('imageSizeInfo');
-          const uploadBox = document.getElementById('imageUploadBox');
-          const uploadIcon = document.getElementById('uploadIcon');
-          const uploadText = document.getElementById('uploadText');
-          
-          preview.src = base64Image;
-          container.style.display = 'block';
-          sizeInfo.textContent = `حجم الصورة: ${fileSize} كيلوبايت`;
-          
-          // تحديث واجهة رفع الصورة
-          uploadBox.classList.add('has-image');
-          uploadIcon.style.display = 'none';
-          uploadText.textContent = 'تم رفع الصورة بنجاح';
-          
-          showSuccess('تم تحميل الصورة بنجاح!');
-        });
+    db.ref('paymentMethods').once('value', (snap) => {
+      if(!snap.val() || Object.keys(snap.val()).length === 0) {
+        defaultPayments.forEach(p => db.ref('paymentMethods').push(p));
       }
     });
   }
-
-  // تهيئة أحداث رفع الصورة في نافذة التعديل
-  function initializeEditImageUpload() {
-    const editImageUploadBox = document.getElementById('editImageUploadBox');
-    const editProductImageInput = document.getElementById('editProductImageInput');
-    
-    editImageUploadBox.addEventListener('click', () => {
-      editProductImageInput.click();
-    });
-    
-    editProductImageInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files[0]) {
-        const file = e.target.files[0];
-        
-        // التحقق من حجم الصورة
-        const fileSize = (file.size / 1024).toFixed(2);
-        
-        // تحويل الصورة إلى Base64
-        convertImageToBase64(file, (base64Image) => {
-          currentEditProductImage = base64Image;
-          
-          // عرض المعاينة
-          const preview = document.getElementById('editImagePreview');
-          const container = document.getElementById('editImagePreviewContainer');
-          const sizeInfo = document.getElementById('editImageSizeInfo');
-          const uploadBox = document.getElementById('editImageUploadBox');
-          const uploadIcon = document.getElementById('editUploadIcon');
-          const uploadText = document.getElementById('editUploadText');
-          
-          preview.src = base64Image;
-          container.style.display = 'block';
-          sizeInfo.textContent = `حجم الصورة: ${fileSize} كيلوبايت`;
-          
-          // تحديث واجهة رفع الصورة
-          uploadBox.classList.add('has-image');
-          uploadIcon.style.display = 'none';
-          uploadText.textContent = 'تم رفع الصورة الجديدة';
-          
-          showSuccess('تم تحميل الصورة الجديدة بنجاح!');
-        });
-      }
-    });
-  }
-
-  // إزالة صورة المنتج الجديد
-  function removeProductImage() {
-    currentProductImage = null;
-    document.getElementById('productImageInput').value = '';
-    document.getElementById('imagePreviewContainer').style.display = 'none';
-    document.getElementById('imageUploadBox').classList.remove('has-image');
-    document.getElementById('uploadIcon').style.display = 'block';
-    document.getElementById('uploadText').textContent = 'انقر لرفع صورة';
-  }
-
-  // إزالة صورة المنتج في نافذة التعديل
-  function removeEditProductImage() {
-    currentEditProductImage = null;
-    document.getElementById('editProductImageInput').value = '';
-    document.getElementById('editImagePreviewContainer').style.display = 'none';
-    document.getElementById('editImageUploadBox').classList.remove('has-image');
-    document.getElementById('editUploadIcon').style.display = 'block';
-    document.getElementById('editUploadText').textContent = 'انقر لتغيير الصورة';
-  }
-
-  // عرض رسالة نجاح
-  function showSuccess(message) {
-    const successMsg = document.getElementById('successMessage');
-    const successText = document.getElementById('successText');
-    
-    successText.textContent = message;
-    successMsg.style.display = 'block';
-    
-    setTimeout(() => {
-      successMsg.style.display = 'none';
-    }, 3000);
-  }
-
-  // دوال التحميل الأصلية
-  function loadData() {
-    db.ref('categories').on('value', s => { 
-      categories = s.val() || {}; 
-      renderCategories(); 
-      renderCategorySelect(); 
-    });
-    
-    db.ref('products').on('value', s => { 
-      products = s.val() || {}; 
-      renderProductList();
-    });
-    
-    db.ref('deliveryAreas').on('value', s => { 
-      deliveryAreas = s.val() || {}; 
-      renderAreas(); 
-    });
-    
-    db.ref('paymentMethods').on('value', s => { 
-      paymentMethods = s.val() || {}; 
-      renderPaymentMethods(); 
-    });
-    
-    db.ref('orders').on('value', s => { 
-      orders = s.val() || {}; 
-      renderOrders(); 
-    });
-    
-    db.ref('productOrder').on('value', s => { 
-      productOrder = s.val() || []; 
-      renderProductList();
-    });
-    
-    // تهيئة أحداث رفع الصور
-    initializeImageUpload();
-    initializeEditImageUpload();
-  }
-
-  // عرض قائمة الأصناف بشكل أنيق مع خاصية الترتيب
-  function renderProductList() {
-    const productsList = document.getElementById('products-list');
-    const emptyMessage = document.getElementById('empty-products-message');
-    
-    if (Object.keys(products).length === 0) {
-      productsList.innerHTML = '';
-      emptyMessage.style.display = 'block';
-      return;
-    }
-    
-    emptyMessage.style.display = 'none';
-    productsList.innerHTML = '';
-    
-    // فرز الأصناف حسب الترتيب المحفوظ
-    let sortedProductKeys = Object.keys(products);
-    if (productOrder && productOrder.length > 0) {
-      // تصفية المفاتيح الموجودة فقط
-      sortedProductKeys = productOrder.filter(key => products[key]);
-      // إضافة الأصناف الجديدة التي لم تكن في الترتيب القديم
-      const newProducts = Object.keys(products).filter(key => !productOrder.includes(key));
-      sortedProductKeys = [...sortedProductKeys, ...newProducts];
-    }
-    
-    // إنشاء عناصر الأصناف
-    sortedProductKeys.forEach((key, index) => {
-      const p = products[key];
-      if (!p) return;
-      
-      const productItem = document.createElement('div');
-      productItem.className = 'product-item';
-      productItem.dataset.key = key;
-      productItem.draggable = true;
-      
-      const defaultImage = 'https://via.placeholder.com/60x60/e8f5e9/2e7d32?text=🍗';
-      const imageUrl = p.image ? p.image : defaultImage;
-      
-      productItem.innerHTML = `
-        <div class="product-order-handle">
-          <span>⋮⋮</span>
-        </div>
-        
-        <div class="product-order-number">${index + 1}</div>
-        
-        <div class="product-image">
-          <img src="${imageUrl}" alt="${p.name}" 
-               onerror="this.src='${defaultImage}'">
-        </div>
-        
-        <div class="product-details">
-          <div class="product-name">${p.name}</div>
-          <div class="product-category">${p.category || 'بدون تصنيف'}</div>
-          <div class="product-price">${Number(p.price).toFixed(2)} دينار</div>
-          <div style="font-size: 11px; color: #666; margin-top: 2px;">${p.desc || ''}</div>
-        </div>
-        
-        <div class="product-stock-status ${p.outOfStock ? 'stock-out' : 'stock-available'}">
-          ${p.outOfStock ? 'نفدت' : 'متوفر'}
-        </div>
-        
-        <div class="product-actions">
-          <button class="btn secondary" onclick="openEditModal('${key}')">تعديل</button>
-          <button class="btn secondary" onclick="toggleOutOfStock('${key}', ${!!p.outOfStock})">
-            ${p.outOfStock ? 'توفر' : 'نفذ'}
-          </button>
-          <button class="btn danger" onclick="deleteProduct('${key}')">حذف</button>
-        </div>
-      `;
-      
-      // إضافة أحداث السحب والإفلات
-      productItem.addEventListener('dragstart', handleProductDragStart);
-      productItem.addEventListener('dragover', handleProductDragOver);
-      productItem.addEventListener('dragenter', handleProductDragEnter);
-      productItem.addEventListener('dragleave', handleProductDragLeave);
-      productItem.addEventListener('drop', handleProductDrop);
-      productItem.addEventListener('dragend', handleProductDragEnd);
-      
-      productsList.appendChild(productItem);
-    });
-    
-    // تمكين السحب والإفلات للقائمة بأكملها
-    productsList.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      this.classList.add('drag-over');
-    });
-    
-    productsList.addEventListener('dragleave', function(e) {
-      if (!this.contains(e.relatedTarget)) {
-        this.classList.remove('drag-over');
-      }
-    });
-    
-    productsList.addEventListener('drop', function(e) {
-      e.preventDefault();
-      this.classList.remove('drag-over');
-    });
-  }
-
-  // أحداث السحب والإفلات للأصناف
-  let draggedProduct = null;
-
-  function handleProductDragStart(e) {
-    draggedProduct = this;
-    this.classList.add('dragging');
-    
-    setTimeout(() => {
-      this.style.opacity = '0.4';
-    }, 0);
-  }
-
-  function handleProductDragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  }
-
-  function handleProductDragEnter(e) {
-    e.preventDefault();
-    if (this !== draggedProduct) {
-      this.classList.add('drag-over');
-    }
-  }
-
-  function handleProductDragLeave(e) {
-    this.classList.remove('drag-over');
-  }
-
-  function handleProductDrop(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    this.classList.remove('drag-over');
-    
-    if (draggedProduct !== this) {
-      const productsList = document.getElementById('products-list');
-      const items = Array.from(productsList.querySelectorAll('.product-item'));
-      const draggedIndex = items.indexOf(draggedProduct);
-      const dropIndex = items.indexOf(this);
-      
-      if (draggedIndex < dropIndex) {
-        productsList.insertBefore(draggedProduct, this.nextSibling);
-      } else {
-        productsList.insertBefore(draggedProduct, this);
-      }
-      
-      // تحديث أرقام الترتيب
-      updateProductNumbers();
-    }
-  }
-
-  function handleProductDragEnd() {
-    this.classList.remove('dragging');
-    this.style.opacity = '1';
-    
-    document.querySelectorAll('.product-item').forEach(item => {
-      item.classList.remove('drag-over');
-    });
-    
-    draggedProduct = null;
-  }
-
-  // تحديث أرقام الترتيب
-  function updateProductNumbers() {
-    const productsList = document.getElementById('products-list');
-    const items = Array.from(productsList.querySelectorAll('.product-item'));
-    
-    items.forEach((item, index) => {
-      const orderNumber = item.querySelector('.product-order-number');
-      if (orderNumber) {
-        orderNumber.textContent = index + 1;
-      }
-    });
-  }
-
-  // حفظ ترتيب الأصناف
-  async function saveProductOrder() {
-    const productsList = document.getElementById('products-list');
-    const items = Array.from(productsList.querySelectorAll('.product-item'));
-    const newOrder = items.map(item => item.dataset.key);
-    
-    try {
-      await db.ref('productOrder').set(newOrder);
-      showSuccess('تم حفظ ترتيب الأصناف بنجاح!');
-    } catch (error) {
-      alert('حدث خطأ في حفظ الترتيب: ' + error.message);
-    }
-  }
-
-  // --- إدارة الأصناف ---
-  async function addProduct() {
-    const name = document.getElementById('prod-name').value.trim();
-    const price = document.getElementById('prod-price').value;
-    const category = document.getElementById('prod-category').value;
-    const description = document.getElementById('prod-description').value.trim();
-    const outOfStock = document.getElementById('prod-outofstock').checked;
-    
-    if (!name) return alert('يرجى إدخال اسم الصنف');
-    if (!price || Number(price) <= 0) return alert('يرجى إدخال سعر صحيح');
-    
-    // التحقق من وجود صورة
-    if (!currentProductImage) {
-      if (!confirm('لم تقم برفع صورة للمنتج. هل تريد المتابعة بدون صورة؟')) {
-        return;
-      }
-    }
-    
-    const productRef = db.ref('products').push();
-    const productId = productRef.key;
-    
-    productRef.set({
-      name, 
-      price: Number(price), 
-      category: category || null, 
-      image: currentProductImage || '',
-      desc: description || '',
-      outOfStock: outOfStock,
-      createdAt: Date.now()
-    }).then(() => {
-      // إعادة تعيين الحقول
-      document.getElementById('prod-name').value = '';
-      document.getElementById('prod-price').value = '';
-      document.getElementById('prod-description').value = '';
-      document.getElementById('prod-outofstock').checked = false;
-      removeProductImage();
-      
-      // تحديث قائمة التصنيفات
-      renderCategorySelect();
-      
-      showSuccess('تم إضافة المنتج بنجاح!');
-    }).catch(error => {
-      alert('حدث خطأ في إضافة المنتج: ' + error.message);
-    });
-  }
-
-  // فتح نافذة تعديل المنتج
-  function openEditModal(key) {
-    const p = products[key];
-    if (!p) return;
-    
-    currentEditProductKey = key;
-    currentEditProductImage = null; // إعادة تعيين الصورة الجديدة
-    
-    // تعبئة الحقول
-    document.getElementById('edit-name').value = p.name || '';
-    document.getElementById('edit-price').value = p.price || '';
-    document.getElementById('edit-description').value = p.desc || '';
-    document.getElementById('edit-outofstock').checked = !!p.outOfStock;
-    
-    // تعبئة قائمة التصنيفات في نافذة التعديل
-    const categorySelect = document.getElementById('edit-category');
-    categorySelect.innerHTML = '<option value="">بدون تصنيف</option>';
-    Object.keys(categories).forEach(k => { 
-      categorySelect.innerHTML += `<option value="${categories[k].name}">${categories[k].name}</option>`; 
-    });
-    
-    if (p.category) {
-      categorySelect.value = p.category;
-    }
-    
-    // عرض الصورة الحالية
-    const currentImage = document.getElementById('editCurrentImage');
-    const currentImageContainer = document.getElementById('editCurrentImageContainer');
-    const currentImageInfo = document.getElementById('editCurrentImageInfo');
-    
-    if (p.image) {
-      currentImage.src = p.image;
-      
-      // حساب حجم الصورة التقريبي
-      if (p.image.length > 0) {
-        const sizeInKB = (p.image.length / 1024).toFixed(2);
-        currentImageInfo.textContent = `حجم الصورة: ${sizeInKB} كيلوبايت`;
-      }
-      
-      currentImageContainer.style.display = 'block';
-    } else {
-      currentImageContainer.style.display = 'none';
-    }
-    
-    // إخفاء معاينة الصورة الجديدة
-    document.getElementById('editImagePreviewContainer').style.display = 'none';
-    document.getElementById('editImageUploadBox').classList.remove('has-image');
-    document.getElementById('editUploadIcon').style.display = 'block';
-    document.getElementById('editUploadText').textContent = 'انقر لتغيير الصورة';
-    
-    // عرض النافذة
-    document.getElementById('editProductModal').style.display = 'flex';
-  }
-
-  // إغلاق نافذة التعديل
-  function closeEditModal() {
-    document.getElementById('editProductModal').style.display = 'none';
-    currentEditProductKey = '';
-    currentEditProductImage = null;
-  }
-
-  // تحديث المنتج
-  function updateProduct() {
-    if (!currentEditProductKey) return;
-    
-    const name = document.getElementById('edit-name').value.trim();
-    const price = document.getElementById('edit-price').value;
-    const category = document.getElementById('edit-category').value;
-    const description = document.getElementById('edit-description').value.trim();
-    const outOfStock = document.getElementById('edit-outofstock').checked;
-    
-    if (!name) return alert('يرجى إدخال اسم الصنف');
-    if (!price || Number(price) <= 0) return alert('يرجى إدخال سعر صحيح');
-    
-    // الحصول على الصورة الحالية من المنتج
-    const currentProduct = products[currentEditProductKey];
-    const currentImage = currentProduct ? currentProduct.image : '';
-    
-    // استخدام الصورة الجديدة إذا تم رفعها، أو الاحتفاظ بالصورة الحالية
-    const finalImage = currentEditProductImage || currentImage;
-    
-    const updateData = { 
-      name: name,
-      price: Number(price),
-      category: category || null,
-      desc: description || '',
-      outOfStock: outOfStock,
-      updatedAt: Date.now()
-    };
-    
-    // فقط نضيف الصورة إذا كانت موجودة
-    if (finalImage) {
-      updateData.image = finalImage;
-    }
-    
-    db.ref('products/' + currentEditProductKey).update(updateData)
-      .then(() => {
-        closeEditModal();
-        showSuccess('تم تحديث المنتج بنجاح!');
-      }).catch(error => {
-        alert('حدث خطأ في تحديث المنتج: ' + error.message);
-      });
-  }
-
-  function toggleOutOfStock(key, isOutOfStock) {
-    db.ref('products/' + key).update({ 
-      outOfStock: !isOutOfStock,
-      updatedAt: Date.now()
-    }).then(() => {
-      showSuccess(`تم ${!isOutOfStock ? 'إخفاء' : 'إظهار'} المنتج بنجاح!`);
-    });
-  }
-
-  function deleteProduct(key) { 
-    if(confirm('هل أنت متأكد من حذف هذا الصنف؟')) {
-      db.ref('products/' + key).remove().then(() => {
-        // إزالة المنتج من الترتيب
-        const newOrder = productOrder.filter(item => item !== key);
-        db.ref('productOrder').set(newOrder);
-        showSuccess('تم حذف المنتج بنجاح!');
-      }).catch(error => {
-        alert('حدث خطأ في حذف المنتج: ' + error.message);
-      });
-    }
-  }
-
-  // --- إدارة التصنيفات والمناطق والدفع ---
-  function renderCategories() {
-    const tb = document.getElementById('cats-tbody'); 
-    tb.innerHTML = '';
-    
-    Object.keys(categories).forEach(k => {
-        tb.innerHTML += `<tr><td data-label="التصنيف">${categories[k].name}</td><td>
-            <button class="btn secondary" onclick="editCategory('${k}')">تعديل</button>
-            <button class="btn danger" onclick="deleteCategory('${k}')">حذف</button>
-        </td></tr>`;
-    });
-  }
-
-  function editCategory(k) {
-    const n = prompt('الاسم الجديد:', categories[k].name);
-    if(n) {
-      db.ref('categories/'+k).update({name: n}).then(() => {
-        showSuccess('تم تحديث التصنيف بنجاح!');
-      });
-    }
-  }
-
-  function renderAreas() {
-    const tb = document.getElementById('areas-tbody'); 
-    tb.innerHTML = '';
-    
-    Object.keys(deliveryAreas).forEach(k => {
-        const a = deliveryAreas[k];
-        tb.innerHTML += `<tr><td data-label="المنطقة">${a.name}</td><td data-label="السعر">${a.price} د.ل</td><td>
-            <button class="btn secondary" onclick="editArea('${k}')">تعديل</button>
-            <button class="btn danger" onclick="deleteArea('${k}')">حذف</button>
-        </td></tr>`;
-    });
-  }
-
-  function editArea(k) {
-    const n = prompt('اسم المنطقة:', deliveryAreas[k].name);
-    const p = prompt('السعر:', deliveryAreas[k].price);
-    if(n && p) {
-      db.ref('deliveryAreas/'+k).update({name: n, price: Number(p)}).then(() => {
-        showSuccess('تم تحديث المنطقة بنجاح!');
-      });
-    }
-  }
-
-  function renderPaymentMethods() {
-    const tb = document.getElementById('payments-tbody'); 
-    tb.innerHTML = '';
-    
-    Object.keys(paymentMethods).forEach(k => {
-        tb.innerHTML += `<tr><td data-label="الطريقة">${paymentMethods[k].name}</td><td>
-            <button class="btn secondary" onclick="editPaymentMethod('${k}')">تعديل</button>
-            <button class="btn danger" onclick="deletePaymentMethod('${k}')">حذف</button>
-        </td></tr>`;
-    });
-  }
-
-  function editPaymentMethod(k) {
-    const n = prompt('الاسم الجديد:', paymentMethods[k].name);
-    if(n) {
-      db.ref('paymentMethods/'+k).update({name: n}).then(() => {
-        showSuccess('تم تحديث طريقة الدفع بنجاح!');
-      });
-    }
-  }
-
-  // --- إدارة الطلبات ---
-  function renderOrders() {
-    const tb = document.getElementById('orders-tbody'); 
-    tb.innerHTML = '';
-    
-    const sorted = Object.entries(orders).sort(([, a], [, b]) => (b.createdAt || 0) - (a.createdAt || 0));
-
-    sorted.forEach(([key, o]) => {
-      const items = (o.items || []).map(i => i.name + ' × ' + i.qty).join(', ');
-      const statusClass = `s-${o.status || 'received'}`;
-      tb.innerHTML += `
-        <tr>
-          <td data-label="العميل">${o.customerPhone}<br><small>${o.payment}</small></td>
-          <td data-label="الأصناف">${items}</td>
-          <td data-label="الإجمالي"><b>${o.total?.toFixed(2) || '0.00'}</b></td>
-          <td data-label="الحالة"><span class="status ${statusClass}">${getStatusText(o.status)}</span></td>
-          <td>
-            <select onchange="updateOrderStatus('${key}', this.value)" style="width:100px; margin-bottom:5px">
-                <option value="received" ${o.status === 'received' ? 'selected' : ''}>مستلم</option>
-                <option value="preparing" ${o.status === 'preparing' ? 'selected' : ''}>تجهيز</option>
-                <option value="on_the_way" ${o.status === 'on_the_way' ? 'selected' : ''}>بالطريق</option>
-                <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>تم التسليم</option>
-            </select>
-            <button class="btn danger" onclick="deleteOrder('${key}')">حذف</button>
-          </td>
-        </tr>`;
-    });
-  }
-
-  /* وظائف المساعدة */
-  function addCategory() {
-    const n = document.getElementById('cat-name').value.trim();
-    if(n) {
-      db.ref('categories').push().set({name:n}).then(() => {
-        document.getElementById('cat-name').value='';
-        renderCategorySelect();
-        showSuccess('تم إضافة التصنيف بنجاح!');
-      }).catch(error => {
-        alert('حدث خطأ في إضافة التصنيف: ' + error.message);
-      });
-    }
-  }
-
-  function renderCategorySelect() {
-    const s = document.getElementById('prod-category'); 
-    s.innerHTML = '<option value="">بدون تصنيف</option>';
-    
-    Object.keys(categories).forEach(k => { 
-      s.innerHTML += `<option value="${categories[k].name}">${categories[k].name}</option>`; 
-    });
-  }
-
-  function addArea() {
-    const n = document.getElementById('area-name').value.trim();
-    const p = document.getElementById('area-price').value;
-    
-    if(n && p) {
-      db.ref('deliveryAreas').push().set({name:n, price:Number(p)}).then(() => {
-        document.getElementById('area-name').value=''; 
-        document.getElementById('area-price').value='';
-        showSuccess('تم إضافة المنطقة بنجاح!');
-      }).catch(error => {
-        alert('حدث خطأ في إضافة المنطقة: ' + error.message);
-      });
-    }
-  }
-
-  function addPaymentMethod() {
-    const n = document.getElementById('pay-name').value.trim();
-    if(n) {
-      db.ref('paymentMethods').push().set({name:n}).then(() => {
-        document.getElementById('pay-name').value='';
-        showSuccess('تم إضافة طريقة الدفع بنجاح!');
-      }).catch(error => {
-        alert('حدث خطأ في إضافة طريقة الدفع: ' + error.message);
-      });
-    }
-  }
-
-  function updateOrderStatus(k, s) { 
-    db.ref('orders/'+k).update({status:s}).then(() => {
-      showSuccess('تم تحديث حالة الطلب بنجاح!');
-    }); 
-  }
-
-  function deleteOrder(k) { 
-    if(confirm('هل أنت متأكد من حذف هذا الطلب؟')) {
-      db.ref('orders/'+k).remove().then(() => {
-        showSuccess('تم حذف الطلب بنجاح!');
-      }); 
-    }
-  }
-
-  function deleteCategory(k){ 
-    if(confirm('هل أنت متأكد من حذف هذا التصنيف؟')) {
-      db.ref('categories/'+k).remove().then(() => {
-        showSuccess('تم حذف التصنيف بنجاح!');
-      }); 
-    }
-  }
-
-  function deleteArea(k){ 
-    if(confirm('هل أنت متأكد من حذف هذه المنطقة؟')) {
-      db.ref('deliveryAreas/'+k).remove().then(() => {
-        showSuccess('تم حذف المنطقة بنجاح!');
-      }); 
-    }
-  }
-
-  function deletePaymentMethod(k){ 
-    if(confirm('هل أنت متأكد من حذف طريقة الدفع هذه؟')) {
-      db.ref('paymentMethods/'+k).remove().then(() => {
-        showSuccess('تم حذف طريقة الدفع بنجاح!');
-      }); 
-    }
-  }
-
-  function getStatusText(s) { 
-    const m = {
-      'received':'مستلم',
-      'preparing':'تجهيز',
-      'on_the_way':'بالطريق',
-      'delivered':'تم التسليم'
-    };
-    return m[s] || 'مستلم';
-  }
-
-  // تحميل البيانات عند بدء التشغيل
+  
+  // ==================== بدء التشغيل ====================
   loadData();
+  initDefaultPaymentMethods();
 </script>
 </body>
 </html>
